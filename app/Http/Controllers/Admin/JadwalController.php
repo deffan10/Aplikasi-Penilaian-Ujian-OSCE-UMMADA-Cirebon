@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Jadwal;
-use App\Models\Mahasiswa;
-use App\Models\Kelas;
 use Illuminate\Http\Request;
 
 class JadwalController extends Controller
@@ -13,7 +11,7 @@ class JadwalController extends Controller
     public function index()
     {
         $jadwal = Jadwal::aktif()
-            ->withCount('peserta')
+            ->withCount('gelombang')
             ->orderBy('mulai', 'desc')
             ->paginate(20);
 
@@ -26,7 +24,7 @@ class JadwalController extends Controller
     public function arsip()
     {
         $jadwal = Jadwal::arsip()
-            ->withCount('peserta')
+            ->withCount('gelombang')
             ->orderBy('diarsipkan_pada', 'desc')
             ->paginate(20);
 
@@ -35,8 +33,7 @@ class JadwalController extends Controller
 
     public function create()
     {
-        $kelasList = Kelas::aktif()->with('mahasiswa')->orderBy('kode')->get();
-        return view('admin.jadwal.create', compact('kelasList'));
+        return view('admin.jadwal.create');
     }
 
     public function store(Request $request)
@@ -48,8 +45,6 @@ class JadwalController extends Controller
             'keterangan' => 'nullable|string',
             'tahun_akademik' => 'nullable|string|max:9|regex:/^\d{4}\/\d{4}$/',
             'semester' => 'nullable|in:ganjil,genap',
-            'mahasiswa_ids' => 'required|array|min:1',
-            'mahasiswa_ids.*' => 'exists:mahasiswa,id',
         ]);
 
         $jadwal = Jadwal::create([
@@ -61,26 +56,24 @@ class JadwalController extends Controller
             'semester' => $data['semester'] ?? null,
         ]);
 
-        // Add selected mahasiswa as peserta
-        $jadwal->peserta()->attach($data['mahasiswa_ids']);
-
-        return redirect()->route('admin.jadwal.index')
-            ->with('success', 'Jadwal OSCE berhasil dibuat dengan ' . count($data['mahasiswa_ids']) . ' peserta.');
+        return redirect()->route('admin.jadwal.show', $jadwal)
+            ->with('success', 'Jadwal OSCE berhasil dibuat. Silakan tambahkan Gelombang dan assign mahasiswa/penguji.');
     }
 
     public function show(Jadwal $jadwal)
     {
-        $jadwal->load('peserta.kelas');
+        $jadwal->load(['gelombang' => function($q) {
+            $q->withCount(['mahasiswa', 'pengujiStasi'])
+              ->orderBy('urutan');
+        }]);
+        
         return view('admin.jadwal.show', compact('jadwal'));
     }
 
     public function edit(Jadwal $jadwal)
     {
-        $kelasList = Kelas::aktif()->orderBy('kode')->get();
-        $pesertaIds = $jadwal->peserta()->pluck('mahasiswa.id')->toArray();
-        $allMahasiswa = Mahasiswa::with('kelas')->orderBy('nama')->get();
-        
-        return view('admin.jadwal.edit', compact('jadwal', 'kelasList', 'pesertaIds', 'allMahasiswa'));
+        $jadwal->load('gelombang');
+        return view('admin.jadwal.edit', compact('jadwal'));
     }
 
     public function update(Request $request, Jadwal $jadwal)
@@ -92,8 +85,6 @@ class JadwalController extends Controller
             'keterangan' => 'nullable|string',
             'tahun_akademik' => 'nullable|string|max:9|regex:/^\d{4}\/\d{4}$/',
             'semester' => 'nullable|in:ganjil,genap',
-            'mahasiswa_ids' => 'nullable|array',
-            'mahasiswa_ids.*' => 'exists:mahasiswa,id',
         ]);
 
         $jadwal->update([
@@ -105,15 +96,25 @@ class JadwalController extends Controller
             'semester' => $data['semester'] ?? null,
         ]);
 
-        $jadwal->peserta()->sync($data['mahasiswa_ids'] ?? []);
-
-        return redirect()->route('admin.jadwal.index')
+        return redirect()->route('admin.jadwal.show', $jadwal)
             ->with('success', 'Jadwal OSCE berhasil diupdate.');
     }
 
     public function destroy(Jadwal $jadwal)
     {
+        // Check if jadwal has nilai
+        if ($jadwal->nilai()->count() > 0) {
+            return back()->with('error', 'Tidak dapat menghapus jadwal karena sudah ada nilai.');
+        }
+        
+        // Delete related gelombang data
+        foreach ($jadwal->gelombang as $gelombang) {
+            $gelombang->pengujiStasi()->delete();
+            $gelombang->mahasiswa()->detach();
+        }
+        $jadwal->gelombang()->delete();
         $jadwal->delete();
+        
         return back()->with('success', 'Jadwal berhasil dihapus.');
     }
 

@@ -96,8 +96,9 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">NIM</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Gelombang</th>
                             <?php $__currentLoopData = $stasi; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase" colspan="2">
                                     <?php echo e($s->nama); ?>
 
                                     <?php if(isset($nilaiAcuan[$s->id])): ?>
@@ -109,6 +110,15 @@
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Acuan</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
                         </tr>
+                        
+                        <tr class="bg-gray-100">
+                            <th colspan="4"></th>
+                            <?php $__currentLoopData = $stasi; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <th class="px-2 py-1 text-center text-xxs font-medium text-gray-400 uppercase">Nilai</th>
+                                <th class="px-2 py-1 text-center text-xxs font-medium text-gray-400 uppercase">Penguji</th>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            <th colspan="3"></th>
+                        </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <?php $__empty_1 = true; $__currentLoopData = $peserta; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $idx => $mhs): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
@@ -117,6 +127,9 @@
                                 $totalNilaiAktual = 0;
                                 $totalNilaiAcuanMhs = 0;
                                 $countNilai = 0;
+                                
+                                // Get gelombang mahasiswa
+                                $gelombangMhs = $mahasiswaGelombang[$mhs->id] ?? null;
                                 
                                 foreach($stasi as $s) {
                                     $nilai = $mhs->nilai->where('jadwal_id', $jadwal->id)->where('stasi_id', $s->id)->first();
@@ -143,8 +156,16 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"><?php echo e($idx + 1); ?></td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900"><?php echo e($mhs->nim); ?></td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900"><?php echo e($mhs->nama); ?></td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
+                                    <?php if($gelombangMhs): ?>
+                                        <span class="px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-800"><?php echo e($gelombangMhs->nama); ?></span>
+                                    <?php else: ?>
+                                        <span class="text-gray-400">-</span>
+                                    <?php endif; ?>
+                                </td>
                                 <?php $__currentLoopData = $stasi; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
+                                    
+                                    <td class="px-2 py-3 whitespace-nowrap text-sm text-center">
                                         <?php if($nilaiPerStasi[$s->id]): ?>
                                             <?php
                                                 $nilaiAktualStasi = $nilaiPerStasi[$s->id]->nilai_aktual ?? $nilaiPerStasi[$s->id]->total_nilai;
@@ -172,6 +193,24 @@
                                             <span class="text-gray-400">-</span>
                                         <?php endif; ?>
                                     </td>
+                                    
+                                    <td class="px-2 py-3 whitespace-nowrap text-xs text-center text-gray-500">
+                                        <?php if($nilaiPerStasi[$s->id] && $nilaiPerStasi[$s->id]->penguji): ?>
+                                            <?php echo e($nilaiPerStasi[$s->id]->penguji->name); ?>
+
+                                        <?php elseif($gelombangMhs): ?>
+                                            <?php
+                                                $pengujiGel = $gelombangMhs->getPengujiForStasi($s->id);
+                                            ?>
+                                            <?php if($pengujiGel): ?>
+                                                <span class="text-gray-400"><?php echo e($pengujiGel->name); ?></span>
+                                            <?php else: ?>
+                                                <span class="text-gray-300">-</span>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span class="text-gray-300">-</span>
+                                        <?php endif; ?>
+                                    </td>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-center font-bold <?php echo e($statusLulus === true ? 'text-green-600' : ($statusLulus === false ? 'text-red-600' : 'text-gray-500')); ?>">
                                     <?php echo e($countNilai > 0 ? number_format($totalNilaiAktual, 1) : '-'); ?>
@@ -195,7 +234,7 @@
                             </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
-                                <td colspan="<?php echo e(6 + $stasi->count()); ?>" class="px-4 py-3 text-center text-gray-500">Belum ada peserta.</td>
+                                <td colspan="<?php echo e(7 + ($stasi->count() * 2)); ?>" class="px-4 py-3 text-center text-gray-500">Belum ada peserta.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

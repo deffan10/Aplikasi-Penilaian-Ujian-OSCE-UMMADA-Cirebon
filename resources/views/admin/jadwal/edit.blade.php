@@ -65,35 +65,41 @@
                 </div>
             </div>
 
-            <div class="mb-4">
+            <div class="mb-6">
                 <label for="keterangan" class="block text-sm font-medium text-gray-700 mb-1">Keterangan (Opsional)</label>
                 <textarea name="keterangan" id="keterangan" rows="2"
                     class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('keterangan', $jadwal->keterangan) }}</textarea>
                 @error('keterangan') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Peserta</label>
-                <div class="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-md p-3">
-                    @forelse($allMahasiswa as $mhs)
-                        <label class="flex items-center">
-                            <input type="checkbox" name="mahasiswa_ids[]" value="{{ $mhs->id }}"
-                                {{ in_array($mhs->id, old('mahasiswa_ids', $pesertaIds)) ? 'checked' : '' }}
-                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                            <span class="ml-2 text-sm text-gray-700">{{ $mhs->nim }} - {{ $mhs->nama }} ({{ $mhs->kelas->nama ?? '-' }})</span>
-                        </label>
-                    @empty
-                        <p class="text-gray-500 text-sm">Belum ada mahasiswa.</p>
-                    @endforelse
+            {{-- Info Statistik Jadwal --}}
+            <div class="mb-6 bg-gray-50 rounded-lg p-4">
+                <h4 class="font-medium text-gray-900 mb-2">Informasi Jadwal</h4>
+                <div class="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-500">Gelombang:</span>
+                        <span class="font-medium ml-1">{{ $jadwal->gelombang->count() }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Total Mahasiswa:</span>
+                        <span class="font-medium ml-1">{{ $jadwal->gelombang->sum(fn($g) => $g->mahasiswa()->count()) }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Total Penguji:</span>
+                        <span class="font-medium ml-1">{{ $jadwal->gelombang->sum(fn($g) => $g->pengujiStasi()->count()) }}</span>
+                    </div>
                 </div>
-                @error('mahasiswa_ids') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                <p class="text-xs text-gray-500 mt-2">
+                    Untuk mengatur gelombang, mahasiswa, dan penguji, silakan gunakan menu 
+                    <a href="{{ route('admin.jadwal-penguji.gelombang', $jadwal) }}" class="text-indigo-600 hover:underline">Kelola Gelombang</a>.
+                </p>
             </div>
 
             <div class="flex items-center gap-4">
                 <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
                     Update
                 </button>
-                <a href="{{ route('admin.jadwal.index') }}" class="text-gray-600 hover:text-gray-900">Batal</a>
+                <a href="{{ route('admin.jadwal.show', $jadwal) }}" class="text-gray-600 hover:text-gray-900">Batal</a>
             </div>
         </form>
     </div>

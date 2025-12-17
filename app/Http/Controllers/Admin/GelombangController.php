@@ -1,0 +1,216 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Jadwal;
+use App\Models\Gelombang;
+use App\Models\GelombangPenguji;
+use App\Models\Stasi;
+use App\Models\User;
+use App\Models\Mahasiswa;
+use Illuminate\Http\Request;
+
+class GelombangController extends Controller
+{
+    /**
+     * Display list of jadwal with their gelombang count (for standalone Kelola Gelombang page)
+     */
+    public function list()
+    {
+        $jadwalList = Jadwal::where('is_arsip', false)
+            ->withCount('gelombang')
+            ->orderBy('mulai', 'desc')
+            ->get();
+        
+        return view('admin.gelombang.list', compact('jadwalList'));
+    }
+
+    /**
+     * Display gelombang list for a jadwal
+     */
+    public function index(Jadwal $jadwal)
+    {
+        $gelombangList = $jadwal->gelombang()
+            ->with(['mahasiswa', 'pengujiStasi.penguji', 'pengujiStasi.stasi'])
+            ->orderBy('urutan')
+            ->get();
+        
+        $stasiList = Stasi::where('aktif', true)->orderBy('id')->get();
+        
+        return view('admin.gelombang.index', compact('jadwal', 'gelombangList', 'stasiList'));
+    }
+
+    /**
+     * Show form to create new gelombang
+     */
+    public function create(Jadwal $jadwal)
+    {
+        $stasiList = Stasi::where('aktif', true)->orderBy('id')->get();
+        $pengujiList = User::where('role', 'penguji')->orderBy('name')->get();
+        
+        // Get mahasiswa yang belum ada di gelombang manapun untuk jadwal ini
+        $assignedMahasiswaIds = $jadwal->gelombang()
+            ->with('mahasiswa')
+            ->get()
+            ->pluck('mahasiswa')
+            ->flatten()
+            ->pluck('id')
+            ->toArray();
+        
+        $availableMahasiswa = $jadwal->peserta()
+            ->whereNotIn('mahasiswa.id', $assignedMahasiswaIds)
+            ->orderBy('nama')
+            ->get();
+        
+        $nextUrutan = $jadwal->gelombang()->max('urutan') + 1;
+        
+        return view('admin.gelombang.create', compact('jadwal', 'stasiList', 'pengujiList', 'availableMahasiswa', 'nextUrutan'));
+    }
+
+    /**
+     * Store new gelombang
+     */
+    public function store(Request $request, Jadwal $jadwal)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:100',
+            'waktu_mulai' => 'nullable|date_format:H:i',
+            'waktu_selesai' => 'nullable|date_format:H:i',
+            'urutan' => 'required|integer|min:1',
+            'penguji' => 'array',
+            'penguji.*' => 'nullable|exists:users,id',
+            'mahasiswa' => 'array',
+            'mahasiswa.*' => 'exists:mahasiswa,id',
+        ]);
+
+        // Create gelombang
+        $gelombang = $jadwal->gelombang()->create([
+            'nama' => $request->nama,
+            'waktu_mulai' => $request->waktu_mulai,
+            'waktu_selesai' => $request->waktu_selesai,
+            'urutan' => $request->urutan,
+        ]);
+
+        // Assign penguji per stasi
+        if ($request->has('penguji')) {
+            foreach ($request->penguji as $stasiId => $pengujiId) {
+                if ($pengujiId) {
+                    GelombangPenguji::create([
+                        'gelombang_id' => $gelombang->id,
+                        'stasi_id' => $stasiId,
+                        'penguji_id' => $pengujiId,
+                    ]);
+                }
+            }
+        }
+
+        // Assign mahasiswa
+        if ($request->has('mahasiswa')) {
+            $gelombang->mahasiswa()->attach($request->mahasiswa);
+        }
+
+        return redirect()
+            ->route('admin.jadwal.gelombang.index', $jadwal)
+            ->with('success', 'Gelombang berhasil dibuat.');
+    }
+
+    /**
+     * Show form to edit gelombang
+     */
+    public function edit(Jadwal $jadwal, Gelombang $gelombang)
+    {
+        $stasiList = Stasi::where('aktif', true)->orderBy('id')->get();
+        $pengujiList = User::where('role', 'penguji')->orderBy('name')->get();
+        
+        // Get penguji per stasi for this gelombang
+        $currentPenguji = $gelombang->pengujiStasi->pluck('penguji_id', 'stasi_id')->toArray();
+        
+        // Get mahasiswa yang sudah di gelombang ini + yang belum di gelombang manapun
+        $assignedMahasiswaIds = $jadwal->gelombang()
+            ->where('id', '!=', $gelombang->id)
+            ->with('mahasiswa')
+            ->get()
+            ->pluck('mahasiswa')
+            ->flatten()
+            ->pluck('id')
+            ->toArray();
+        
+        $availableMahasiswa = $jadwal->peserta()
+            ->whereNotIn('mahasiswa.id', $assignedMahasiswaIds)
+            ->orderBy('nama')
+            ->get();
+        
+        $currentMahasiswa = $gelombang->mahasiswa->pluck('id')->toArray();
+        
+        return view('admin.gelombang.edit', compact(
+            'jadwal', 'gelombang', 'stasiList', 'pengujiList', 
+            'currentPenguji', 'availableMahasiswa', 'currentMahasiswa'
+        ));
+    }
+
+    /**
+     * Update gelombang
+     */
+    public function update(Request $request, Jadwal $jadwal, Gelombang $gelombang)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:100',
+            'waktu_mulai' => 'nullable|date_format:H:i',
+            'waktu_selesai' => 'nullable|date_format:H:i',
+            'urutan' => 'required|integer|min:1',
+            'penguji' => 'array',
+            'penguji.*' => 'nullable|exists:users,id',
+            'mahasiswa' => 'array',
+            'mahasiswa.*' => 'exists:mahasiswa,id',
+        ]);
+
+        // Update gelombang
+        $gelombang->update([
+            'nama' => $request->nama,
+            'waktu_mulai' => $request->waktu_mulai,
+            'waktu_selesai' => $request->waktu_selesai,
+            'urutan' => $request->urutan,
+        ]);
+
+        // Update penguji per stasi
+        $gelombang->pengujiStasi()->delete();
+        if ($request->has('penguji')) {
+            foreach ($request->penguji as $stasiId => $pengujiId) {
+                if ($pengujiId) {
+                    GelombangPenguji::create([
+                        'gelombang_id' => $gelombang->id,
+                        'stasi_id' => $stasiId,
+                        'penguji_id' => $pengujiId,
+                    ]);
+                }
+            }
+        }
+
+        // Update mahasiswa
+        $gelombang->mahasiswa()->sync($request->mahasiswa ?? []);
+
+        return redirect()
+            ->route('admin.jadwal.gelombang.index', $jadwal)
+            ->with('success', 'Gelombang berhasil diupdate.');
+    }
+
+    /**
+     * Delete gelombang
+     */
+    public function destroy(Jadwal $jadwal, Gelombang $gelombang)
+    {
+        // Check if ada nilai terkait
+        if ($gelombang->nilai()->count() > 0) {
+            return redirect()
+                ->route('admin.jadwal.gelombang.index', $jadwal)
+                ->with('error', 'Tidak dapat menghapus gelombang yang sudah memiliki data penilaian.');
+        }
+
+        $gelombang->delete();
+
+        return redirect()
+            ->route('admin.jadwal.gelombang.index', $jadwal)
+            ->with('success', 'Gelombang berhasil dihapus.');
+    }
+}

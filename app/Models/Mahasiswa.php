@@ -41,4 +41,13 @@ class Mahasiswa extends Model
         return $this->belongsToMany(Jadwal::class, 'jadwal_mahasiswa')
             ->withTimestamps();
     }
+
+    /**
+     * Get gelombang this mahasiswa is assigned to
+     */
+    public function gelombang(): BelongsToMany
+    {
+        return $this->belongsToMany(Gelombang::class, 'gelombang_mahasiswa')
+            ->withTimestamps();
+    }
 }

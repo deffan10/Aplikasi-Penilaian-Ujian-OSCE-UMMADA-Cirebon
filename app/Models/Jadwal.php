@@ -47,6 +47,14 @@ class Jadwal extends Model
     }
 
     /**
+     * Get all gelombang for this jadwal
+     */
+    public function gelombang(): HasMany
+    {
+        return $this->hasMany(Gelombang::class);
+    }
+
+    /**
      * Check if jadwal is active (currently running)
      */
     public function isActive(): bool

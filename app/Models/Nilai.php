@@ -12,6 +12,7 @@ class Nilai extends Model
 
     protected $fillable = [
         'jadwal_id',
+        'gelombang_id',
         'stasi_id',
         'mahasiswa_id',
         'penguji_id',
@@ -34,6 +35,14 @@ class Nilai extends Model
     public function jadwal(): BelongsTo
     {
         return $this->belongsTo(Jadwal::class);
+    }
+
+    /**
+     * Get gelombang for this nilai
+     */
+    public function gelombang(): BelongsTo
+    {
+        return $this->belongsTo(Gelombang::class);
     }
 
     /**

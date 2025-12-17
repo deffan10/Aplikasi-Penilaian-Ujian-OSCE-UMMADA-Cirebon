@@ -1,83 +1,84 @@
 <table>
     {{-- Title Row --}}
     <tr>
-        <td colspan="{{ 7 + $stasi->count() }}" style="font-weight: bold; font-size: 14px; text-align: center;">
+        <td colspan="{{ 8 + ($stasi->count() * 2) }}" style="font-weight: bold; font-size: 14px; text-align: center;">
             REKAP NILAI UJIAN OSCE TAHUN {{ $jadwal->mulai->format('Y') }}
         </td>
     </tr>
     <tr>
-        <td colspan="{{ 7 + $stasi->count() }}"></td>
+        <td colspan="{{ 8 + ($stasi->count() * 2) }}"></td>
     </tr>
     {{-- Info Rows --}}
     <tr>
         <td colspan="2" style="font-weight: bold;">Jadwal:</td>
-        <td colspan="{{ 5 + $stasi->count() }}">{{ $jadwal->nama }}</td>
+        <td colspan="{{ 6 + ($stasi->count() * 2) }}">{{ $jadwal->nama }}</td>
     </tr>
     <tr>
         <td colspan="2" style="font-weight: bold;">Tanggal:</td>
-        <td colspan="{{ 5 + $stasi->count() }}">{{ $jadwal->mulai->format('d F Y H:i') }} - {{ $jadwal->selesai->format('H:i') }}</td>
+        <td colspan="{{ 6 + ($stasi->count() * 2) }}">{{ $jadwal->mulai->format('d F Y H:i') }} - {{ $jadwal->selesai->format('H:i') }}</td>
     </tr>
     <tr>
         <td colspan="2" style="font-weight: bold;">Jumlah Peserta:</td>
-        <td colspan="{{ 5 + $stasi->count() }}">{{ $peserta->count() }} mahasiswa</td>
+        <td colspan="{{ 6 + ($stasi->count() * 2) }}">{{ $peserta->count() }} mahasiswa</td>
     </tr>
     <tr>
-        <td colspan="{{ 7 + $stasi->count() }}"></td>
+        <td colspan="{{ 8 + ($stasi->count() * 2) }}"></td>
     </tr>
     {{-- Keterangan Penilaian --}}
     <tr>
-        <td colspan="{{ 7 + $stasi->count() }}" style="font-weight: bold;">Keterangan Penilaian (BAB VII):</td>
+        <td colspan="{{ 8 + ($stasi->count() * 2) }}" style="font-weight: bold;">Keterangan Penilaian (BAB VII):</td>
     </tr>
     <tr>
-        <td colspan="{{ 7 + $stasi->count() }}">- Nilai Aktual per Stasi: Σ(skor × bobot) - Contoh: skor 3, bobot 2 = 6</td>
+        <td colspan="{{ 8 + ($stasi->count() * 2) }}">- Nilai Aktual per Stasi: Σ(skor × bobot) - Contoh: skor 3, bobot 2 = 6</td>
     </tr>
     <tr>
-        <td colspan="{{ 7 + $stasi->count() }}">- Nilai Acuan: Standard setting berbasis regresi Global Rating (1-4)</td>
+        <td colspan="{{ 8 + ($stasi->count() * 2) }}">- Nilai Acuan: Standard setting berbasis regresi Global Rating (1-4)</td>
     </tr>
     <tr>
-        <td colspan="{{ 7 + $stasi->count() }}">- Kelulusan: Total Nilai Aktual ≥ Total Nilai Acuan</td>
+        <td colspan="{{ 8 + ($stasi->count() * 2) }}">- Kelulusan: Total Nilai Aktual ≥ Total Nilai Acuan</td>
     </tr>
     <tr>
-        <td colspan="{{ 7 + $stasi->count() }}"></td>
+        <td colspan="{{ 8 + ($stasi->count() * 2) }}"></td>
     </tr>
     {{-- Nilai Acuan per Stasi --}}
     @if(count($nilaiAcuan) > 0)
     <tr>
-        <td colspan="3" style="font-weight: bold;">Nilai Acuan per Stasi:</td>
+        <td colspan="4" style="font-weight: bold;">Nilai Acuan per Stasi:</td>
         @foreach($stasi as $s)
-            <td style="text-align: center;">{{ $s->nama }}</td>
+            <td style="text-align: center;" colspan="2">{{ $s->nama }}</td>
         @endforeach
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td colspan="4"></td>
     </tr>
     <tr>
-        <td colspan="3"></td>
+        <td colspan="4"></td>
         @foreach($stasi as $s)
-            <td style="text-align: center; font-weight: bold;">{{ isset($nilaiAcuan[$s->id]) ? number_format($nilaiAcuan[$s->id], 1) : '-' }}</td>
+            <td style="text-align: center; font-weight: bold;" colspan="2">{{ isset($nilaiAcuan[$s->id]) ? number_format($nilaiAcuan[$s->id], 1) : '-' }}</td>
         @endforeach
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td colspan="4"></td>
     </tr>
     <tr>
-        <td colspan="{{ 7 + $stasi->count() }}"></td>
+        <td colspan="{{ 8 + ($stasi->count() * 2) }}"></td>
     </tr>
     @endif
     <thead>
         <tr>
-            <th style="font-weight: bold; background-color: #f0f0f0;">No</th>
-            <th style="font-weight: bold; background-color: #f0f0f0;">NIM</th>
-            <th style="font-weight: bold; background-color: #f0f0f0;">Nama</th>
+            <th style="font-weight: bold; background-color: #f0f0f0;" rowspan="2">No</th>
+            <th style="font-weight: bold; background-color: #f0f0f0;" rowspan="2">NIM</th>
+            <th style="font-weight: bold; background-color: #f0f0f0;" rowspan="2">Nama</th>
+            <th style="font-weight: bold; background-color: #f0f0f0;" rowspan="2">Gelombang</th>
             @foreach($stasi as $s)
-                <th style="font-weight: bold; background-color: #f0f0f0; text-align: center;">{{ $s->nama }}</th>
+                <th style="font-weight: bold; background-color: #f0f0f0; text-align: center;" colspan="2">{{ $s->nama }}</th>
             @endforeach
-            <th style="font-weight: bold; background-color: #f0f0f0; text-align: center;">Total Aktual</th>
-            <th style="font-weight: bold; background-color: #f0f0f0; text-align: center;">Total Acuan</th>
-            <th style="font-weight: bold; background-color: #f0f0f0; text-align: center;">Selisih</th>
-            <th style="font-weight: bold; background-color: #f0f0f0; text-align: center;">Status</th>
+            <th style="font-weight: bold; background-color: #f0f0f0; text-align: center;" rowspan="2">Total Aktual</th>
+            <th style="font-weight: bold; background-color: #f0f0f0; text-align: center;" rowspan="2">Total Acuan</th>
+            <th style="font-weight: bold; background-color: #f0f0f0; text-align: center;" rowspan="2">Selisih</th>
+            <th style="font-weight: bold; background-color: #f0f0f0; text-align: center;" rowspan="2">Status</th>
+        </tr>
+        <tr>
+            @foreach($stasi as $s)
+                <th style="font-weight: bold; background-color: #e0e0e0; text-align: center;">Nilai</th>
+                <th style="font-weight: bold; background-color: #e0e0e0; text-align: center;">Penguji</th>
+            @endforeach
         </tr>
     </thead>
     <tbody>
@@ -87,6 +88,7 @@
                 $totalNilaiAktual = 0;
                 $totalNilaiAcuanMhs = 0;
                 $countNilai = 0;
+                $gelombang = $mahasiswaGelombang[$mhs->id] ?? null;
                 
                 foreach($stasi as $s) {
                     $nilai = $mhs->nilai->where('jadwal_id', $jadwal->id)->where('stasi_id', $s->id)->first();
@@ -114,17 +116,29 @@
                 <td>{{ $idx + 1 }}</td>
                 <td>{{ $mhs->nim }}</td>
                 <td>{{ $mhs->nama }}</td>
+                <td>{{ $gelombang ? $gelombang->nama : '-' }}</td>
                 @foreach($stasi as $s)
+                    @php
+                        $nilai = $nilaiPerStasi[$s->id];
+                        $pengujiNama = '-';
+                        if ($nilai) {
+                            $pengujiNama = $nilai->penguji ? $nilai->penguji->name : '-';
+                        } elseif ($gelombang) {
+                            $gp = $gelombang->pengujiStasi->where('stasi_id', $s->id)->first();
+                            $pengujiNama = $gp ? $gp->penguji->name : '-';
+                        }
+                    @endphp
                     <td style="text-align: center;">
-                        @if($nilaiPerStasi[$s->id])
-                            {{ number_format($nilaiPerStasi[$s->id]->nilai_aktual ?? $nilaiPerStasi[$s->id]->total_nilai, 1) }}
-                            @if($nilaiPerStasi[$s->id]->globalRating)
-                                (GR:{{ $nilaiPerStasi[$s->id]->globalRating->nilai }})
+                        @if($nilai)
+                            {{ number_format($nilai->nilai_aktual ?? $nilai->total_nilai, 1) }}
+                            @if($nilai->globalRating)
+                                (GR:{{ $nilai->globalRating->nilai }})
                             @endif
                         @else
                             -
                         @endif
                     </td>
+                    <td>{{ $pengujiNama }}</td>
                 @endforeach
                 <td style="text-align: center; font-weight: bold;">{{ $countNilai > 0 ? number_format($totalNilaiAktual, 1) : '-' }}</td>
                 <td style="text-align: center;">{{ ($countNilai > 0 && count($nilaiAcuan) > 0) ? number_format($totalNilaiAcuanMhs, 1) : '-' }}</td>
@@ -145,11 +159,11 @@
     </tbody>
     {{-- Summary Row --}}
     <tr>
-        <td colspan="{{ 7 + $stasi->count() }}"></td>
+        <td colspan="{{ 8 + ($stasi->count() * 2) }}"></td>
     </tr>
     <tr>
-        <td colspan="3" style="font-weight: bold;">Ringkasan:</td>
-        <td colspan="{{ 4 + $stasi->count() }}"></td>
+        <td colspan="4" style="font-weight: bold;">Ringkasan:</td>
+        <td colspan="{{ 4 + ($stasi->count() * 2) }}"></td>
     </tr>
     @php
         $lulusCount = 0;
@@ -180,17 +194,17 @@
     @endphp
     <tr>
         <td colspan="2">Lulus:</td>
-        <td>{{ $lulusCount }} mahasiswa</td>
-        <td colspan="{{ 4 + $stasi->count() }}"></td>
+        <td colspan="2">{{ $lulusCount }} mahasiswa</td>
+        <td colspan="{{ 4 + ($stasi->count() * 2) }}"></td>
     </tr>
     <tr>
         <td colspan="2">Tidak Lulus:</td>
-        <td>{{ $tidakLulusCount }} mahasiswa</td>
-        <td colspan="{{ 4 + $stasi->count() }}"></td>
+        <td colspan="2">{{ $tidakLulusCount }} mahasiswa</td>
+        <td colspan="{{ 4 + ($stasi->count() * 2) }}"></td>
     </tr>
     <tr>
         <td colspan="2">Menunggu Nilai Acuan:</td>
-        <td>{{ $pendingCount }} mahasiswa</td>
-        <td colspan="{{ 4 + $stasi->count() }}"></td>
+        <td colspan="2">{{ $pendingCount }} mahasiswa</td>
+        <td colspan="{{ 4 + ($stasi->count() * 2) }}"></td>
     </tr>
 </table>

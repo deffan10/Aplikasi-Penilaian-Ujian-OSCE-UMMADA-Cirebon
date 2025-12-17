@@ -9,24 +9,22 @@
         <div class="p-6">
             <div class="flex justify-between items-start">
                 <div>
-                    <div class="flex items-center gap-3">
-                        <h2 class="text-xl font-semibold">{{ $canNilai ? 'Form Penilaian' : 'Lihat Nilai' }}</h2>
-                        @if($canNilai)
-                            <span class="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">
-                                Dapat Menilai
-                            </span>
-                        @else
-                            <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                                Hanya Lihat
-                            </span>
-                        @endif
-                    </div>
+                    <nav class="text-sm text-gray-500 mb-2">
+                        <a href="{{ route('penguji.penilaian.index') }}" class="hover:text-indigo-600">Penilaian</a>
+                        <span class="mx-2">›</span>
+                        <a href="{{ route('penguji.penilaian.select-stasi', $gelombang) }}" class="hover:text-indigo-600">{{ $gelombang->nama }}</a>
+                        <span class="mx-2">›</span>
+                        <a href="{{ route('penguji.penilaian.list', [$gelombang, $stasi]) }}" class="hover:text-indigo-600">{{ $stasi->nama }}</a>
+                        <span class="mx-2">›</span>
+                        <span>{{ $mahasiswa->nama }}</span>
+                    </nav>
+                    <h2 class="text-xl font-semibold">{{ $canNilai ? 'Form Penilaian' : 'Lihat Nilai' }}</h2>
                     <p class="text-gray-500 mt-1">
                         Stasi: {{ $stasi->nama }} | 
-                        Jadwal: {{ $jadwal->nama }}
+                        Gelombang: {{ $gelombang->nama }}
                     </p>
                 </div>
-                <a href="{{ route('penguji.penilaian.list', ['stasi' => $stasi, 'jadwal' => $jadwal]) }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">
+                <a href="{{ route('penguji.penilaian.list', ['gelombang' => $gelombang, 'stasi' => $stasi]) }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">
                     ← Kembali
                 </a>
             </div>
@@ -52,7 +50,7 @@
 
     @if($canNilai)
         {{-- FORM MODE: Can input/edit nilai --}}
-        <form action="{{ route('penguji.penilaian.store', ['stasi' => $stasi, 'jadwal' => $jadwal, 'mahasiswa' => $mahasiswa]) }}" method="POST">
+        <form action="{{ route('penguji.penilaian.store', ['gelombang' => $gelombang, 'stasi' => $stasi, 'mahasiswa' => $mahasiswa]) }}" method="POST">
             @csrf
             
             {{-- Scoring Guide --}}
@@ -194,7 +192,7 @@
             {{-- Submit --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mt-6">
                 <div class="p-6 flex justify-end gap-4">
-                    <a href="{{ route('penguji.penilaian.list', ['stasi' => $stasi, 'jadwal' => $jadwal]) }}" 
+                    <a href="{{ route('penguji.penilaian.list', ['gelombang' => $gelombang, 'stasi' => $stasi]) }}" 
                        class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
                         Batal
                     </a>

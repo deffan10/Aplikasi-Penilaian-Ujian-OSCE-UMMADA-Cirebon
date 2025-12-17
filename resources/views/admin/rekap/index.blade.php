@@ -32,27 +32,17 @@
                 </div>
             </div>
 
-            {{-- Rekap Per Kelas --}}
+            {{-- Rekap Per Stasi --}}
             <div class="border rounded-lg p-6">
-                <h3 class="text-lg font-medium mb-4">Rekap Per Kelas</h3>
+                <h3 class="text-lg font-medium mb-4">Rekap Per Stasi</h3>
                 <div class="space-y-4">
-                    <div>
-                        <label for="kelas_select" class="block text-sm font-medium text-gray-700 mb-1">Pilih Kelas</label>
-                        <select id="kelas_select"
-                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">-- Pilih Kelas --</option>
-                            @foreach($kelasList as $k)
-                                <option value="{{ $k->id }}" class="{{ $k->is_arsip ? 'text-gray-500' : '' }}">
-                                    {{ $k->nama }}{{ $k->is_arsip ? ' (Arsip)' : '' }}
-                                    @if($k->label_tahun_akademik) | {{ $k->label_tahun_akademik }} @endif
-                                </option>
-                            @endforeach
-                        </select>
-                        <p class="text-xs text-gray-500 mt-1">Kelas arsip tetap bisa dilihat rekapnya</p>
-                    </div>
-                    <button type="button" onclick="goToKelas()" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-                        Lihat Rekap
-                    </button>
+                    <p class="text-sm text-gray-500">
+                        Lihat rekap nilai per stasi untuk jadwal tertentu. 
+                        Termasuk informasi gelombang dan penguji.
+                    </p>
+                    <a href="{{ route('admin.rekap.stasi') }}" class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                        Lihat Rekap Per Stasi
+                    </a>
                 </div>
             </div>
         </div>
@@ -92,16 +82,6 @@ function goToJadwal() {
         window.location.href = "{{ url('admin/rekap/jadwal') }}/" + jadwalId;
     } else {
         alert('Silakan pilih jadwal terlebih dahulu');
-    }
-}
-
-function goToKelas() {
-    const select = document.getElementById('kelas_select');
-    const kelasId = select.value;
-    if (kelasId) {
-        window.location.href = "{{ url('admin/rekap/kelas') }}/" + kelasId;
-    } else {
-        alert('Silakan pilih kelas terlebih dahulu');
     }
 }
 </script>

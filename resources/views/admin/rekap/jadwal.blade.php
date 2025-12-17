@@ -92,8 +92,9 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">NIM</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Gelombang</th>
                             @foreach($stasi as $s)
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase" colspan="2">
                                     {{ $s->nama }}
                                     @if(isset($nilaiAcuan[$s->id]))
                                         <div class="text-xxs text-purple-500 font-normal">(≥{{ number_format($nilaiAcuan[$s->id], 0) }})</div>
@@ -104,6 +105,15 @@
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Acuan</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
                         </tr>
+                        {{-- Sub header untuk Nilai & Penguji --}}
+                        <tr class="bg-gray-100">
+                            <th colspan="4"></th>
+                            @foreach($stasi as $s)
+                                <th class="px-2 py-1 text-center text-xxs font-medium text-gray-400 uppercase">Nilai</th>
+                                <th class="px-2 py-1 text-center text-xxs font-medium text-gray-400 uppercase">Penguji</th>
+                            @endforeach
+                            <th colspan="3"></th>
+                        </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($peserta as $idx => $mhs)
@@ -112,6 +122,9 @@
                                 $totalNilaiAktual = 0;
                                 $totalNilaiAcuanMhs = 0;
                                 $countNilai = 0;
+                                
+                                // Get gelombang mahasiswa
+                                $gelombangMhs = $mahasiswaGelombang[$mhs->id] ?? null;
                                 
                                 foreach($stasi as $s) {
                                     $nilai = $mhs->nilai->where('jadwal_id', $jadwal->id)->where('stasi_id', $s->id)->first();
@@ -138,8 +151,16 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $idx + 1 }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $mhs->nim }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $mhs->nama }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
+                                    @if($gelombangMhs)
+                                        <span class="px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-800">{{ $gelombangMhs->nama }}</span>
+                                    @else
+                                        <span class="text-gray-400">-</span>
+                                    @endif
+                                </td>
                                 @foreach($stasi as $s)
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
+                                    {{-- Kolom Nilai --}}
+                                    <td class="px-2 py-3 whitespace-nowrap text-sm text-center">
                                         @if($nilaiPerStasi[$s->id])
                                             @php
                                                 $nilaiAktualStasi = $nilaiPerStasi[$s->id]->nilai_aktual ?? $nilaiPerStasi[$s->id]->total_nilai;
@@ -160,6 +181,23 @@
                                             @endif
                                         @else
                                             <span class="text-gray-400">-</span>
+                                        @endif
+                                    </td>
+                                    {{-- Kolom Penguji --}}
+                                    <td class="px-2 py-3 whitespace-nowrap text-xs text-center text-gray-500">
+                                        @if($nilaiPerStasi[$s->id] && $nilaiPerStasi[$s->id]->penguji)
+                                            {{ $nilaiPerStasi[$s->id]->penguji->name }}
+                                        @elseif($gelombangMhs)
+                                            @php
+                                                $pengujiGel = $gelombangMhs->getPengujiForStasi($s->id);
+                                            @endphp
+                                            @if($pengujiGel)
+                                                <span class="text-gray-400">{{ $pengujiGel->name }}</span>
+                                            @else
+                                                <span class="text-gray-300">-</span>
+                                            @endif
+                                        @else
+                                            <span class="text-gray-300">-</span>
                                         @endif
                                     </td>
                                 @endforeach
@@ -183,7 +221,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ 6 + $stasi->count() }}" class="px-4 py-3 text-center text-gray-500">Belum ada peserta.</td>
+                                <td colspan="{{ 7 + ($stasi->count() * 2) }}" class="px-4 py-3 text-center text-gray-500">Belum ada peserta.</td>
                             </tr>
                         @endforelse
                     </tbody>

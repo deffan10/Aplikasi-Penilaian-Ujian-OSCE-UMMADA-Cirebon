@@ -181,15 +181,22 @@
     <table class="main">
         <thead>
             <tr>
-                <th style="width: 20px;">No</th>
-                <th style="width: 60px;">NIM</th>
-                <th style="width: 100px;">Nama</th>
+                <th style="width: 20px;" rowspan="2">No</th>
+                <th style="width: 60px;" rowspan="2">NIM</th>
+                <th style="width: 80px;" rowspan="2">Nama</th>
+                <th style="width: 40px;" rowspan="2">Gelombang</th>
                 @foreach($stasi as $s)
-                    <th>{{ $s->nama }}</th>
+                    <th colspan="2">{{ $s->nama }}</th>
                 @endforeach
-                <th style="width: 45px;">Total Aktual</th>
-                <th style="width: 45px;">Total Acuan</th>
-                <th style="width: 50px;">Status</th>
+                <th style="width: 40px;" rowspan="2">Total Aktual</th>
+                <th style="width: 40px;" rowspan="2">Total Acuan</th>
+                <th style="width: 45px;" rowspan="2">Status</th>
+            </tr>
+            <tr>
+                @foreach($stasi as $s)
+                    <th style="font-size: 7px;">Nilai</th>
+                    <th style="font-size: 7px;">Penguji</th>
+                @endforeach
             </tr>
         </thead>
         <tbody>
@@ -199,6 +206,7 @@
                     $totalNilaiAktual = 0;
                     $totalNilaiAcuanMhs = 0;
                     $countNilai = 0;
+                    $gelombang = $mahasiswaGelombang[$mhs->id] ?? null;
                     
                     foreach($stasi as $s) {
                         $nilai = $mhs->nilai->where('jadwal_id', $jadwal->id)->where('stasi_id', $s->id)->first();
@@ -222,24 +230,36 @@
                     <td>{{ $idx + 1 }}</td>
                     <td>{{ $mhs->nim }}</td>
                     <td class="left">{{ $mhs->nama }}</td>
+                    <td>{{ $gelombang ? $gelombang->nama : '-' }}</td>
                     @foreach($stasi as $s)
+                        @php
+                            $nilai = $nilaiPerStasi[$s->id];
+                            $pengujiNama = '-';
+                            if ($nilai) {
+                                $pengujiNama = $nilai->penguji ? $nilai->penguji->name : '-';
+                            } elseif ($gelombang) {
+                                $gp = $gelombang->pengujiStasi->where('stasi_id', $s->id)->first();
+                                $pengujiNama = $gp ? $gp->penguji->name : '-';
+                            }
+                        @endphp
                         <td>
-                            @if($nilaiPerStasi[$s->id])
+                            @if($nilai)
                                 @php
-                                    $nilaiAktualStasi = $nilaiPerStasi[$s->id]->nilai_aktual ?? $nilaiPerStasi[$s->id]->total_nilai;
+                                    $nilaiAktualStasi = $nilai->nilai_aktual ?? $nilai->total_nilai;
                                     $acuanStasi = $nilaiAcuan[$s->id] ?? null;
                                     $lulusStasi = $acuanStasi ? $nilaiAktualStasi >= $acuanStasi : $nilaiAktualStasi >= 70;
                                 @endphp
                                 <span class="{{ $lulusStasi ? 'lulus' : 'tidak-lulus' }}">
                                     {{ number_format($nilaiAktualStasi, 1) }}
                                 </span>
-                                @if($nilaiPerStasi[$s->id]->globalRating)
-                                    <br><span class="gr-badge">GR:{{ $nilaiPerStasi[$s->id]->globalRating->nilai }}</span>
+                                @if($nilai->globalRating)
+                                    <br><span class="gr-badge">GR:{{ $nilai->globalRating->nilai }}</span>
                                 @endif
                             @else
                                 -
                             @endif
                         </td>
+                        <td style="font-size: 6px;">{{ $pengujiNama }}</td>
                     @endforeach
                     <td class="{{ $statusLulus === true ? 'lulus' : ($statusLulus === false ? 'tidak-lulus' : '') }}">
                         {{ $countNilai > 0 ? number_format($totalNilaiAktual, 1) : '-' }}

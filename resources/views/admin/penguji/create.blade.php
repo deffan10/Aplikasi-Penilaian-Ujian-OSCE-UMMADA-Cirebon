@@ -17,8 +17,17 @@
             </div>
 
             <div class="mb-4">
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" name="email" id="email" value="{{ old('email') }}" required
+                <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <input type="text" name="username" id="username" value="{{ old('username') }}" required
+                    placeholder="contoh: budi.santoso"
+                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                <p class="text-xs text-gray-500 mt-1">Gunakan huruf, angka, titik, dash, atau underscore</p>
+                @error('username') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-gray-400 font-normal">(opsional)</span></label>
+                <input type="email" name="email" id="email" value="{{ old('email') }}"
                     class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 @error('email') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
