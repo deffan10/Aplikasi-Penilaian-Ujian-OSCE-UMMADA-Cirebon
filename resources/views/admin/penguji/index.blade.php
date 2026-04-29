@@ -38,7 +38,7 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stasi Ditugaskan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stasi (Jadwal Aktif)</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
                     </tr>
                 </thead>
@@ -50,8 +50,8 @@
                                 <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ $p->username ?? '-' }}</span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500">
-                                @if($p->assignedStasi->count() > 0)
-                                    @foreach($p->assignedStasi as $stasi)
+                                @if(isset($pengujiStasiMap[$p->id]) && $pengujiStasiMap[$p->id]->count() > 0)
+                                    @foreach($pengujiStasiMap[$p->id] as $stasi)
                                         <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded mr-1 mb-1">
                                             {{ $stasi->nama }}
                                         </span>

@@ -15,17 +15,27 @@ class PengujiController extends Controller
     public function index()
     {
         $penguji = User::where('role', 'penguji')
-            ->with('assignedStasi')
             ->orderBy('name')
             ->paginate(20);
 
-        return view('admin.penguji.index', compact('penguji'));
+        // Load stasi assignments from active jadwal (gelombang_penguji)
+        $activeJadwalIds = \App\Models\Jadwal::where('is_arsip', false)->pluck('id');
+        $activeGelombangIds = \App\Models\Gelombang::whereIn('jadwal_id', $activeJadwalIds)->pluck('id');
+        
+        $pengujiStasiMap = \App\Models\GelombangPenguji::whereIn('gelombang_id', $activeGelombangIds)
+            ->with('stasi')
+            ->get()
+            ->groupBy('penguji_id')
+            ->map(function ($items) {
+                return $items->pluck('stasi')->unique('id')->values();
+            });
+
+        return view('admin.penguji.index', compact('penguji', 'pengujiStasiMap'));
     }
 
     public function create()
     {
-        $stasiList = Stasi::where('aktif', true)->orderBy('id')->get();
-        return view('admin.penguji.create', compact('stasiList'));
+        return view('admin.penguji.create');
     }
 
     public function store(Request $request)
@@ -35,11 +45,9 @@ class PengujiController extends Controller
             'username' => 'required|string|max:50|unique:users,username|alpha_dash',
             'email' => 'nullable|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
-            'stasi_ids' => 'nullable|array',
-            'stasi_ids.*' => 'exists:stasi,id',
         ]);
 
-        $user = User::create([
+        User::create([
             'name' => $data['name'],
             'username' => $data['username'],
             'email' => $data['email'] ?? null,
@@ -47,20 +55,13 @@ class PengujiController extends Controller
             'role' => 'penguji',
         ]);
 
-        if (!empty($data['stasi_ids'])) {
-            $user->assignedStasi()->attach($data['stasi_ids'], ['aktif' => true]);
-        }
-
         return redirect()->route('admin.penguji.index')
             ->with('success', 'Penguji berhasil ditambahkan.');
     }
 
     public function edit(User $penguji)
     {
-        $stasiList = Stasi::where('aktif', true)->orderBy('id')->get();
-        $assignedStasiIds = $penguji->assignedStasi()->pluck('stasi.id')->toArray();
-        
-        return view('admin.penguji.edit', compact('penguji', 'stasiList', 'assignedStasiIds'));
+        return view('admin.penguji.edit', compact('penguji'));
     }
 
     public function update(Request $request, User $penguji)
@@ -70,8 +71,6 @@ class PengujiController extends Controller
             'username' => 'required|string|max:50|alpha_dash|unique:users,username,' . $penguji->id,
             'email' => 'nullable|email|unique:users,email,' . $penguji->id,
             'password' => 'nullable|string|min:6|confirmed',
-            'stasi_ids' => 'nullable|array',
-            'stasi_ids.*' => 'exists:stasi,id',
         ]);
 
         $penguji->update([
@@ -83,14 +82,6 @@ class PengujiController extends Controller
         if (!empty($data['password'])) {
             $penguji->update(['password' => Hash::make($data['password'])]);
         }
-
-        // Sync assigned stasi
-        $stasiIds = $data['stasi_ids'] ?? [];
-        $syncData = [];
-        foreach ($stasiIds as $id) {
-            $syncData[$id] = ['aktif' => true];
-        }
-        $penguji->assignedStasi()->sync($syncData);
 
         return redirect()->route('admin.penguji.index')
             ->with('success', 'Penguji berhasil diupdate.');

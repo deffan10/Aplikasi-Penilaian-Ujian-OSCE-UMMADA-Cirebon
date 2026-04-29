@@ -7,19 +7,19 @@
     {{-- Header --}}
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6">
-            <div class="flex justify-between items-start">
+            <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
                     <h2 class="text-xl font-semibold">Rekap Kelas: {{ $kelas->nama }}</h2>
                     <p class="text-gray-500 mt-1">Total {{ $mahasiswa->count() }} mahasiswa</p>
                 </div>
-                <div class="flex gap-2">
-                    <a href="{{ route('admin.rekap.kelas.pdf', $kelas) }}" target="_blank" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                    <a href="{{ route('admin.rekap.kelas.pdf', $kelas) }}" target="_blank" class="w-full sm:w-auto text-center bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 text-sm">
                         Export PDF
                     </a>
-                    <a href="{{ route('admin.rekap.kelas.excel', $kelas) }}" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                    <a href="{{ route('admin.rekap.kelas.excel', $kelas) }}" class="w-full sm:w-auto text-center bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 text-sm">
                         Export Excel
                     </a>
-                    <a href="{{ route('admin.rekap.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">
+                    <a href="{{ route('admin.rekap.index') }}" class="w-full sm:w-auto text-center bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 text-sm">
                         Kembali
                     </a>
                 </div>

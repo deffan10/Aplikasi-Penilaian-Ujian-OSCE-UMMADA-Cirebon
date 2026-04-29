@@ -56,11 +56,11 @@ class JadwalPengujiController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Get current assignments
+        // Get current assignments grouped by stasi_id (supports multiple penguji per stasi)
         $currentAssignments = $gelombang->pengujiStasi()
             ->with(['stasi', 'penguji'])
             ->get()
-            ->keyBy('stasi_id');
+            ->groupBy('stasi_id');
 
         return view('admin.jadwal-penguji.assign', compact('jadwal', 'gelombang', 'stasiList', 'pengujiList', 'currentAssignments'));
     }
@@ -76,21 +76,25 @@ class JadwalPengujiController extends Controller
         }
 
         $request->validate([
-            'penguji' => 'required|array',
-            'penguji.*' => 'nullable|exists:users,id',
+            'penguji' => 'nullable|array',
+            'penguji.*' => 'nullable|array',
+            'penguji.*.*' => 'exists:users,id',
         ]);
 
         // Delete existing assignments
         $gelombang->pengujiStasi()->delete();
 
-        // Create new assignments
-        foreach ($request->penguji as $stasiId => $pengujiId) {
-            if ($pengujiId) {
-                GelombangPenguji::create([
-                    'gelombang_id' => $gelombang->id,
-                    'stasi_id' => $stasiId,
-                    'penguji_id' => $pengujiId,
-                ]);
+        // Create new assignments (multiple penguji per stasi supported)
+        $pengujiData = $request->penguji ?? [];
+        foreach ($pengujiData as $stasiId => $pengujiIds) {
+            if (is_array($pengujiIds)) {
+                foreach ($pengujiIds as $pengujiId) {
+                    GelombangPenguji::create([
+                        'gelombang_id' => $gelombang->id,
+                        'stasi_id' => $stasiId,
+                        'penguji_id' => $pengujiId,
+                    ]);
+                }
             }
         }
 

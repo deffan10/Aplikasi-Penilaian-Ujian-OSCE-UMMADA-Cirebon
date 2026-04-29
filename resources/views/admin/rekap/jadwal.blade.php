@@ -7,7 +7,7 @@
     {{-- Header --}}
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6">
-            <div class="flex justify-between items-start">
+            <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
                     <h2 class="text-xl font-semibold">{{ $jadwal->nama }}</h2>
                     <p class="text-gray-500 mt-1">
@@ -15,22 +15,22 @@
                         Peserta: {{ $peserta->count() }} mahasiswa
                     </p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                     {{-- Tombol Hitung Nilai Acuan --}}
                     <form action="{{ route('admin.rekap.jadwal.hitungNilaiAcuan', $jadwal) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700" 
+                        <button type="submit" class="w-full sm:w-auto bg-purple-600 text-white px-3 py-2 rounded-md hover:bg-purple-700 text-sm" 
                                 onclick="return confirm('Hitung/Update Nilai Acuan berdasarkan regresi Global Rating? Proses ini membutuhkan minimal 3 data penilaian per stasi.')">
                             📊 Hitung Nilai Acuan
                         </button>
                     </form>
-                    <a href="{{ route('admin.rekap.jadwal.pdf', $jadwal) }}" target="_blank" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                    <a href="{{ route('admin.rekap.jadwal.pdf', $jadwal) }}" target="_blank" class="w-full sm:w-auto text-center bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 text-sm">
                         Export PDF
                     </a>
-                    <a href="{{ route('admin.rekap.jadwal.excel', $jadwal) }}" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                    <a href="{{ route('admin.rekap.jadwal.excel', $jadwal) }}" class="w-full sm:w-auto text-center bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 text-sm">
                         Export Excel
                     </a>
-                    <a href="{{ route('admin.rekap.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">
+                    <a href="{{ route('admin.rekap.index') }}" class="w-full sm:w-auto text-center bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 text-sm">
                         Kembali
                     </a>
                 </div>

@@ -47,23 +47,6 @@
                     class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
             </div>
 
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Stasi yang Ditugaskan</label>
-                <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-3">
-                    @forelse($stasiList as $s)
-                        <label class="flex items-center">
-                            <input type="checkbox" name="stasi_ids[]" value="{{ $s->id }}"
-                                {{ in_array($s->id, old('stasi_ids', $assignedStasiIds)) ? 'checked' : '' }}
-                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                            <span class="ml-2 text-sm text-gray-700">{{ $s->nama }}</span>
-                        </label>
-                    @empty
-                        <p class="text-gray-500 text-sm">Belum ada stasi.</p>
-                    @endforelse
-                </div>
-                @error('stasi_ids') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-            </div>
-
             <div class="flex items-center gap-4">
                 <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
                     Update
