@@ -58,12 +58,25 @@ class Gelombang extends Model
     }
 
     /**
-     * Get penguji untuk stasi tertentu
+     * Get first penguji untuk stasi tertentu (backward compatible)
      */
     public function getPengujiForStasi($stasiId)
     {
         $gp = $this->pengujiStasi()->where('stasi_id', $stasiId)->first();
         return $gp ? $gp->penguji : null;
+    }
+
+    /**
+     * Get ALL penguji untuk stasi tertentu (supports multiple penguji)
+     */
+    public function getAllPengujiForStasi($stasiId)
+    {
+        return $this->pengujiStasi()
+            ->where('stasi_id', $stasiId)
+            ->with('penguji')
+            ->get()
+            ->pluck('penguji')
+            ->filter();
     }
 
     /**

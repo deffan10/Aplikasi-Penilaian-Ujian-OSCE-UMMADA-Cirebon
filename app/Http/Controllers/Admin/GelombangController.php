@@ -120,37 +120,23 @@ class GelombangController extends Controller
      */
     public function edit(Jadwal $jadwal, Gelombang $gelombang)
     {
-        $stasiList = Stasi::where('aktif', true)->orderBy('id')->get();
-        $pengujiList = User::where('role', 'penguji')->orderBy('name')->get();
+        // Load current counts for display (read-only)
+        $pengujiCount = $gelombang->pengujiStasi()->count();
+        $mahasiswaCount = $gelombang->mahasiswa()->count();
         
-        // Get penguji per stasi for this gelombang
-        $currentPenguji = $gelombang->pengujiStasi->pluck('penguji_id', 'stasi_id')->toArray();
-        
-        // Get mahasiswa yang sudah di gelombang ini + yang belum di gelombang manapun
-        $assignedMahasiswaIds = $jadwal->gelombang()
-            ->where('id', '!=', $gelombang->id)
-            ->with('mahasiswa')
+        // Load penguji per stasi for info display
+        $pengujiPerStasi = $gelombang->pengujiStasi()
+            ->with(['stasi', 'penguji'])
             ->get()
-            ->pluck('mahasiswa')
-            ->flatten()
-            ->pluck('id')
-            ->toArray();
-        
-        $availableMahasiswa = $jadwal->peserta()
-            ->whereNotIn('mahasiswa.id', $assignedMahasiswaIds)
-            ->orderBy('nama')
-            ->get();
-        
-        $currentMahasiswa = $gelombang->mahasiswa->pluck('id')->toArray();
+            ->groupBy('stasi_id');
         
         return view('admin.gelombang.edit', compact(
-            'jadwal', 'gelombang', 'stasiList', 'pengujiList', 
-            'currentPenguji', 'availableMahasiswa', 'currentMahasiswa'
+            'jadwal', 'gelombang', 'pengujiCount', 'mahasiswaCount', 'pengujiPerStasi'
         ));
     }
 
     /**
-     * Update gelombang
+     * Update gelombang (only basic info - penguji & mahasiswa managed via assign pages)
      */
     public function update(Request $request, Jadwal $jadwal, Gelombang $gelombang)
     {
@@ -159,36 +145,15 @@ class GelombangController extends Controller
             'waktu_mulai' => 'nullable|date_format:H:i',
             'waktu_selesai' => 'nullable|date_format:H:i',
             'urutan' => 'required|integer|min:1',
-            'penguji' => 'array',
-            'penguji.*' => 'nullable|exists:users,id',
-            'mahasiswa' => 'array',
-            'mahasiswa.*' => 'exists:mahasiswa,id',
         ]);
 
-        // Update gelombang
+        // Only update basic info - DO NOT touch penguji or mahasiswa
         $gelombang->update([
             'nama' => $request->nama,
             'waktu_mulai' => $request->waktu_mulai,
             'waktu_selesai' => $request->waktu_selesai,
             'urutan' => $request->urutan,
         ]);
-
-        // Update penguji per stasi
-        $gelombang->pengujiStasi()->delete();
-        if ($request->has('penguji')) {
-            foreach ($request->penguji as $stasiId => $pengujiId) {
-                if ($pengujiId) {
-                    GelombangPenguji::create([
-                        'gelombang_id' => $gelombang->id,
-                        'stasi_id' => $stasiId,
-                        'penguji_id' => $pengujiId,
-                    ]);
-                }
-            }
-        }
-
-        // Update mahasiswa
-        $gelombang->mahasiswa()->sync($request->mahasiswa ?? []);
 
         return redirect()
             ->route('admin.jadwal.gelombang.index', $jadwal)

@@ -56,64 +56,50 @@
                     </div>
                 </div>
 
-                {{-- Penguji per Stasi --}}
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">Penguji per Stasi</h3>
-                    <p class="text-sm text-gray-500 mb-4">Pilih 1 penguji untuk setiap stasi di gelombang ini.</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($stasiList as $stasi)
-                            <div class="border rounded-lg p-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ $stasi->nama }}</label>
-                                <select name="penguji[{{ $stasi->id }}]" 
-                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                                    <option value="">-- Pilih Penguji --</option>
-                                    @foreach($pengujiList as $penguji)
-                                        <option value="{{ $penguji->id }}" 
-                                            {{ old('penguji.' . $stasi->id, $currentPenguji[$stasi->id] ?? '') == $penguji->id ? 'selected' : '' }}>
-                                            {{ $penguji->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endforeach
+                {{-- Info Penguji (Read-Only) --}}
+                <div class="border-t pt-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-lg font-medium text-gray-900">Penguji per Stasi</h3>
+                        <a href="{{ route('admin.jadwal-penguji.assign', [$jadwal, $gelombang]) }}" 
+                           class="text-sm bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-md hover:bg-indigo-200 transition">
+                            ✏️ Kelola Penguji
+                        </a>
                     </div>
-                </div>
-
-                {{-- Mahasiswa --}}
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">Mahasiswa Peserta</h3>
-                    <p class="text-sm text-gray-500 mb-4">
-                        Pilih mahasiswa yang akan mengikuti ujian di gelombang ini.
-                        Saat ini: {{ count($currentMahasiswa) }} mahasiswa terpilih.
-                    </p>
                     
-                    @if($availableMahasiswa->count() > 0)
-                        <div class="mb-4 flex gap-2">
-                            <button type="button" onclick="selectAll()" class="text-sm text-indigo-600 hover:text-indigo-800">Pilih Semua</button>
-                            <span class="text-gray-300">|</span>
-                            <button type="button" onclick="deselectAll()" class="text-sm text-indigo-600 hover:text-indigo-800">Batal Pilih</button>
-                        </div>
-                        
-                        <div class="max-h-64 overflow-y-auto border rounded-lg p-3">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                @foreach($availableMahasiswa as $mhs)
-                                    <label class="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
-                                        <input type="checkbox" name="mahasiswa[]" value="{{ $mhs->id }}" 
-                                            class="mahasiswa-checkbox rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                                            {{ in_array($mhs->id, old('mahasiswa', $currentMahasiswa)) ? 'checked' : '' }}>
-                                        <span>{{ $mhs->nim }} - {{ $mhs->nama }}</span>
-                                    </label>
-                                @endforeach
-                            </div>
+                    @if($pengujiPerStasi->count() > 0)
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            @foreach($pengujiPerStasi as $stasiId => $assignments)
+                                <div class="border rounded-lg p-3 bg-gray-50">
+                                    <div class="text-sm font-medium text-gray-700 mb-1">{{ $assignments->first()->stasi->nama }}</div>
+                                    @foreach($assignments as $assignment)
+                                        <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded mr-1 mb-1">
+                                            {{ $assignment->penguji->name }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endforeach
                         </div>
                     @else
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <p class="text-yellow-800 text-sm">
-                                Tidak ada mahasiswa tersedia untuk dipilih.
-                            </p>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <p class="text-yellow-700 text-sm">Belum ada penguji yang di-assign.</p>
                         </div>
                     @endif
+                </div>
+
+                {{-- Info Mahasiswa (Read-Only) --}}
+                <div class="border-t pt-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-lg font-medium text-gray-900">Mahasiswa Peserta</h3>
+                        <a href="{{ route('admin.jadwal-penguji.assign-mahasiswa', [$jadwal, $gelombang]) }}" 
+                           class="text-sm bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-md hover:bg-indigo-200 transition">
+                            ✏️ Kelola Mahasiswa
+                        </a>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p class="text-blue-800 text-sm font-medium">
+                            {{ $mahasiswaCount }} mahasiswa terdaftar di gelombang ini
+                        </p>
+                    </div>
                 </div>
 
                 {{-- Submit --}}
@@ -131,14 +117,3 @@
     </form>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-function selectAll() {
-    document.querySelectorAll('.mahasiswa-checkbox').forEach(cb => cb.checked = true);
-}
-function deselectAll() {
-    document.querySelectorAll('.mahasiswa-checkbox').forEach(cb => cb.checked = false);
-}
-</script>
-@endpush

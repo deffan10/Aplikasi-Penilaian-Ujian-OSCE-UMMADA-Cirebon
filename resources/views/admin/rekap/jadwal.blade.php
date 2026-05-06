@@ -127,18 +127,35 @@
                                 $gelombangMhs = $mahasiswaGelombang[$mhs->id] ?? null;
                                 
                                 foreach($stasi as $s) {
-                                    $nilai = $mhs->nilai->where('jadwal_id', $jadwal->id)->where('stasi_id', $s->id)->first();
-                                    $nilaiPerStasi[$s->id] = $nilai;
-                                    if ($nilai) {
-                                        // Use nilai_aktual if available, fallback to total_nilai
-                                        $nilaiAktualStasi = $nilai->nilai_aktual ?? $nilai->total_nilai;
-                                        $totalNilaiAktual += $nilaiAktualStasi;
+                                    // Get ALL nilai for this mahasiswa at this stasi (supports multi-penguji)
+                                    $allNilaiStasi = $mhs->nilai->where('jadwal_id', $jadwal->id)->where('stasi_id', $s->id);
+                                    
+                                    if ($allNilaiStasi->count() > 0) {
+                                        // Calculate average across all penguji
+                                        $avgNilaiAktual = $allNilaiStasi->avg(function($n) {
+                                            return $n->nilai_aktual ?? $n->total_nilai;
+                                        });
+                                        $avgGlobalRating = $allNilaiStasi->avg(function($n) {
+                                            return $n->globalRating ? $n->globalRating->nilai : null;
+                                        });
+                                        
+                                        $nilaiPerStasi[$s->id] = [
+                                            'collection' => $allNilaiStasi,
+                                            'avg_nilai_aktual' => round($avgNilaiAktual, 2),
+                                            'avg_global_rating' => $avgGlobalRating ? round($avgGlobalRating, 1) : null,
+                                            'penguji_count' => $allNilaiStasi->count(),
+                                            'penguji_names' => $allNilaiStasi->map(fn($n) => $n->penguji ? $n->penguji->name : '-')->implode(', '),
+                                        ];
+                                        
+                                        $totalNilaiAktual += $avgNilaiAktual;
                                         $countNilai++;
                                         
                                         // Sum nilai acuan for stasi that have nilai
                                         if (isset($nilaiAcuan[$s->id])) {
                                             $totalNilaiAcuanMhs += $nilaiAcuan[$s->id];
                                         }
+                                    } else {
+                                        $nilaiPerStasi[$s->id] = null;
                                     }
                                 }
                                 
@@ -163,20 +180,28 @@
                                     <td class="px-2 py-3 whitespace-nowrap text-sm text-center">
                                         @if($nilaiPerStasi[$s->id])
                                             @php
-                                                $nilaiAktualStasi = $nilaiPerStasi[$s->id]->nilai_aktual ?? $nilaiPerStasi[$s->id]->total_nilai;
+                                                $avgNilai = $nilaiPerStasi[$s->id]['avg_nilai_aktual'];
                                                 $acuanStasi = $nilaiAcuan[$s->id] ?? null;
-                                                $lulusStasi = $acuanStasi ? $nilaiAktualStasi >= $acuanStasi : $nilaiAktualStasi >= 70;
+                                                $lulusStasi = $acuanStasi ? $avgNilai >= $acuanStasi : $avgNilai >= 70;
+                                                $avgGR = $nilaiPerStasi[$s->id]['avg_global_rating'];
+                                                $pengujiCount = $nilaiPerStasi[$s->id]['penguji_count'];
                                             @endphp
                                             <div class="{{ $lulusStasi ? 'text-green-600' : 'text-red-600' }} font-medium">
-                                                {{ number_format($nilaiAktualStasi, 1) }}
+                                                {{ number_format($avgNilai, 1) }}
+                                                @if($pengujiCount > 1)
+                                                    <span class="text-xs text-gray-400" title="Rata-rata dari {{ $pengujiCount }} penguji">⌀</span>
+                                                @endif
                                             </div>
-                                            @if($nilaiPerStasi[$s->id]->globalRating)
+                                            @if($avgGR)
+                                                @php
+                                                    $grRounded = round($avgGR);
+                                                @endphp
                                                 <div class="text-xs 
-                                                    {{ $nilaiPerStasi[$s->id]->globalRating->nilai == 1 ? 'text-red-500' : '' }}
-                                                    {{ $nilaiPerStasi[$s->id]->globalRating->nilai == 2 ? 'text-yellow-500' : '' }}
-                                                    {{ $nilaiPerStasi[$s->id]->globalRating->nilai == 3 ? 'text-green-500' : '' }}
-                                                    {{ $nilaiPerStasi[$s->id]->globalRating->nilai == 4 ? 'text-blue-500' : '' }}">
-                                                    GR:{{ $nilaiPerStasi[$s->id]->globalRating->nilai }}
+                                                    {{ $grRounded == 1 ? 'text-red-500' : '' }}
+                                                    {{ $grRounded == 2 ? 'text-yellow-500' : '' }}
+                                                    {{ $grRounded == 3 ? 'text-green-500' : '' }}
+                                                    {{ $grRounded == 4 ? 'text-blue-500' : '' }}">
+                                                    GR:{{ $pengujiCount > 1 ? number_format($avgGR, 1) : number_format($avgGR, 0) }}
                                                 </div>
                                             @endif
                                         @else
@@ -185,14 +210,14 @@
                                     </td>
                                     {{-- Kolom Penguji --}}
                                     <td class="px-2 py-3 whitespace-nowrap text-xs text-center text-gray-500">
-                                        @if($nilaiPerStasi[$s->id] && $nilaiPerStasi[$s->id]->penguji)
-                                            {{ $nilaiPerStasi[$s->id]->penguji->name }}
+                                        @if($nilaiPerStasi[$s->id])
+                                            {{ $nilaiPerStasi[$s->id]['penguji_names'] }}
                                         @elseif($gelombangMhs)
                                             @php
-                                                $pengujiGel = $gelombangMhs->getPengujiForStasi($s->id);
+                                                $pengujiGelList = $gelombangMhs->getAllPengujiForStasi($s->id);
                                             @endphp
-                                            @if($pengujiGel)
-                                                <span class="text-gray-400">{{ $pengujiGel->name }}</span>
+                                            @if($pengujiGelList->count() > 0)
+                                                <span class="text-gray-400">{{ $pengujiGelList->pluck('name')->implode(', ') }}</span>
                                             @else
                                                 <span class="text-gray-300">-</span>
                                             @endif
@@ -235,11 +260,10 @@
         <div class="p-6">
             <h3 class="text-lg font-semibold mb-4">Statistik</h3>
             @php
-                $allNilai = App\Models\Nilai::where('jadwal_id', $jadwal->id)->get();
-                $avgAktual = $allNilai->avg('nilai_aktual') ?? $allNilai->avg('total_nilai') ?? 0;
                 $lulusCount = 0;
                 $tidakLulusCount = 0;
                 $pendingCount = 0;
+                $allAvgAktual = [];
                 
                 foreach($peserta as $mhs) {
                     $nilaiMhs = $mhs->nilai->where('jadwal_id', $jadwal->id);
@@ -247,10 +271,15 @@
                         $totalAktual = 0;
                         $totalAcuan = 0;
                         foreach($stasi as $s) {
-                            $n = $nilaiMhs->where('stasi_id', $s->id)->first();
-                            if ($n && isset($nilaiAcuan[$s->id])) {
-                                $totalAktual += $n->nilai_aktual ?? $n->total_nilai;
+                            $nilaiStasi = $nilaiMhs->where('stasi_id', $s->id);
+                            if ($nilaiStasi->count() > 0 && isset($nilaiAcuan[$s->id])) {
+                                // Average across penguji
+                                $avgVal = $nilaiStasi->avg(function($n) {
+                                    return $n->nilai_aktual ?? $n->total_nilai;
+                                });
+                                $totalAktual += $avgVal;
                                 $totalAcuan += $nilaiAcuan[$s->id];
+                                $allAvgAktual[] = $avgVal;
                             }
                         }
                         if ($totalAktual >= $totalAcuan) {
@@ -262,6 +291,8 @@
                         $pendingCount++;
                     }
                 }
+                
+                $avgAktual = count($allAvgAktual) > 0 ? array_sum($allAvgAktual) / count($allAvgAktual) : 0;
             @endphp
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div class="bg-indigo-50 rounded-lg p-4">
@@ -298,6 +329,7 @@
                     <li><strong>Global Rating:</strong> Penilaian subjektif penguji (1=Tidak Lulus, 2=Borderline, 3=Lulus, 4=Superior)</li>
                     <li><strong>Nilai Acuan:</strong> Standard setting berbasis regresi linear antara Nilai Aktual dan Global Rating</li>
                     <li><strong>Kriteria Kelulusan:</strong> Total Nilai Aktual semua stasi ≥ Total Nilai Acuan semua stasi</li>
+                    <li><strong>Multi-Penguji:</strong> Jika 1 stasi dinilai oleh lebih dari 1 penguji, nilai aktual dirata-ratakan (ditandai simbol ⌀)</li>
                 </ul>
             </div>
         </div>

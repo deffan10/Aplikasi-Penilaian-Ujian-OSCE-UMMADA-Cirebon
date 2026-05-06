@@ -200,6 +200,7 @@ class RegressionService
 
     /**
      * Calculate overall OSCE result for a mahasiswa
+     * Supports multiple penguji per stasi (averages their scores)
      *
      * @param int $jadwalId
      * @param int $mahasiswaId
@@ -215,26 +216,33 @@ class RegressionService
         $totalNilaiAcuan = 0;
         $stasiResults = [];
 
-        foreach ($nilaiList as $nilai) {
+        // Group by stasi_id to handle multiple penguji
+        $nilaiByStasi = $nilaiList->groupBy('stasi_id');
+
+        foreach ($nilaiByStasi as $stasiId => $nilaiGroup) {
             $nilaiAcuan = NilaiAcuanStasi::where('jadwal_id', $jadwalId)
-                ->where('stasi_id', $nilai->stasi_id)
+                ->where('stasi_id', $stasiId)
                 ->first();
 
             $acuan = $nilaiAcuan ? $nilaiAcuan->nilai_acuan : 0;
             
-            $totalNilaiAktual += $nilai->nilai_aktual;
+            // Average nilai_aktual across all penguji for this stasi
+            $avgNilaiAktual = $nilaiGroup->avg('nilai_aktual');
+            
+            $totalNilaiAktual += $avgNilaiAktual;
             $totalNilaiAcuan += $acuan;
 
             $stasiResults[] = [
-                'stasi_id' => $nilai->stasi_id,
-                'nilai_aktual' => $nilai->nilai_aktual,
+                'stasi_id' => $stasiId,
+                'nilai_aktual' => round($avgNilaiAktual, 2),
                 'nilai_acuan' => $acuan,
-                'lulus' => $nilai->nilai_aktual >= $acuan,
+                'lulus' => $avgNilaiAktual >= $acuan,
+                'penguji_count' => $nilaiGroup->count(),
             ];
         }
 
         return [
-            'total_nilai_aktual' => $totalNilaiAktual,
+            'total_nilai_aktual' => round($totalNilaiAktual, 2),
             'total_nilai_acuan' => $totalNilaiAcuan,
             'lulus_osce' => $totalNilaiAktual >= $totalNilaiAcuan,
             'stasi_results' => $stasiResults,

@@ -123,6 +123,10 @@
         .keterangan li {
             margin: 2px 0;
         }
+        .avg-indicator {
+            font-size: 6px;
+            color: #999;
+        }
     </style>
 </head>
 <body>
@@ -152,6 +156,7 @@
             <li><strong>Global Rating (GR):</strong> 1=Tidak Lulus, 2=Borderline, 3=Lulus, 4=Superior</li>
             <li><strong>Nilai Acuan:</strong> Standard setting berbasis regresi linear Global Rating</li>
             <li><strong>Kelulusan:</strong> Total Nilai Aktual ≥ Total Nilai Acuan</li>
+            <li><strong>Multi-Penguji:</strong> Jika >1 penguji, nilai dirata-ratakan (ditandai *)</li>
         </ul>
     </div>
 
@@ -209,16 +214,32 @@
                     $gelombang = $mahasiswaGelombang[$mhs->id] ?? null;
                     
                     foreach($stasi as $s) {
-                        $nilai = $mhs->nilai->where('jadwal_id', $jadwal->id)->where('stasi_id', $s->id)->first();
-                        $nilaiPerStasi[$s->id] = $nilai;
-                        if ($nilai) {
-                            $nilaiAktualStasi = $nilai->nilai_aktual ?? $nilai->total_nilai;
-                            $totalNilaiAktual += $nilaiAktualStasi;
+                        // Get ALL nilai for multi-penguji support
+                        $allNilaiStasi = $mhs->nilai->where('jadwal_id', $jadwal->id)->where('stasi_id', $s->id);
+                        
+                        if ($allNilaiStasi->count() > 0) {
+                            $avgNilaiAktual = $allNilaiStasi->avg(function($n) {
+                                return $n->nilai_aktual ?? $n->total_nilai;
+                            });
+                            $avgGlobalRating = $allNilaiStasi->avg(function($n) {
+                                return $n->globalRating ? $n->globalRating->nilai : null;
+                            });
+                            
+                            $nilaiPerStasi[$s->id] = [
+                                'avg_nilai_aktual' => round($avgNilaiAktual, 2),
+                                'avg_global_rating' => $avgGlobalRating ? round($avgGlobalRating, 1) : null,
+                                'penguji_count' => $allNilaiStasi->count(),
+                                'penguji_names' => $allNilaiStasi->map(fn($n) => $n->penguji ? $n->penguji->name : '-')->implode(', '),
+                            ];
+                            
+                            $totalNilaiAktual += $avgNilaiAktual;
                             $countNilai++;
                             
                             if (isset($nilaiAcuan[$s->id])) {
                                 $totalNilaiAcuanMhs += $nilaiAcuan[$s->id];
                             }
+                        } else {
+                            $nilaiPerStasi[$s->id] = null;
                         }
                     }
                     
@@ -233,27 +254,27 @@
                     <td>{{ $gelombang ? $gelombang->nama : '-' }}</td>
                     @foreach($stasi as $s)
                         @php
-                            $nilai = $nilaiPerStasi[$s->id];
+                            $data = $nilaiPerStasi[$s->id];
                             $pengujiNama = '-';
-                            if ($nilai) {
-                                $pengujiNama = $nilai->penguji ? $nilai->penguji->name : '-';
+                            if ($data) {
+                                $pengujiNama = $data['penguji_names'];
                             } elseif ($gelombang) {
-                                $gp = $gelombang->pengujiStasi->where('stasi_id', $s->id)->first();
-                                $pengujiNama = $gp ? $gp->penguji->name : '-';
+                                $gp = $gelombang->pengujiStasi->where('stasi_id', $s->id);
+                                $pengujiNama = $gp->map(fn($p) => $p->penguji->name)->implode(', ') ?: '-';
                             }
                         @endphp
                         <td>
-                            @if($nilai)
+                            @if($data)
                                 @php
-                                    $nilaiAktualStasi = $nilai->nilai_aktual ?? $nilai->total_nilai;
+                                    $avgNilai = $data['avg_nilai_aktual'];
                                     $acuanStasi = $nilaiAcuan[$s->id] ?? null;
-                                    $lulusStasi = $acuanStasi ? $nilaiAktualStasi >= $acuanStasi : $nilaiAktualStasi >= 70;
+                                    $lulusStasi = $acuanStasi ? $avgNilai >= $acuanStasi : $avgNilai >= 70;
                                 @endphp
                                 <span class="{{ $lulusStasi ? 'lulus' : 'tidak-lulus' }}">
-                                    {{ number_format($nilaiAktualStasi, 1) }}
+                                    {{ number_format($avgNilai, 1) }}{{ $data['penguji_count'] > 1 ? '*' : '' }}
                                 </span>
-                                @if($nilai->globalRating)
-                                    <br><span class="gr-badge">GR:{{ $nilai->globalRating->nilai }}</span>
+                                @if($data['avg_global_rating'])
+                                    <br><span class="gr-badge">GR:{{ $data['penguji_count'] > 1 ? number_format($data['avg_global_rating'], 1) : number_format($data['avg_global_rating'], 0) }}</span>
                                 @endif
                             @else
                                 -
@@ -293,9 +314,12 @@
                 $totalAktual = 0;
                 $totalAcuan = 0;
                 foreach($stasi as $s) {
-                    $n = $nilaiMhs->where('stasi_id', $s->id)->first();
-                    if ($n && isset($nilaiAcuan[$s->id])) {
-                        $totalAktual += $n->nilai_aktual ?? $n->total_nilai;
+                    $nilaiStasi = $nilaiMhs->where('stasi_id', $s->id);
+                    if ($nilaiStasi->count() > 0 && isset($nilaiAcuan[$s->id])) {
+                        $avgVal = $nilaiStasi->avg(function($n) {
+                            return $n->nilai_aktual ?? $n->total_nilai;
+                        });
+                        $totalAktual += $avgVal;
                         $totalAcuan += $nilaiAcuan[$s->id];
                     }
                 }
@@ -332,6 +356,7 @@
     
     <div style="font-size: 8px; color: #666; margin-top: 15px;">
         Dicetak pada: {{ now()->format('d F Y H:i') }}
+        <br>* = Nilai rata-rata dari beberapa penguji
     </div>
 </body>
 </html>

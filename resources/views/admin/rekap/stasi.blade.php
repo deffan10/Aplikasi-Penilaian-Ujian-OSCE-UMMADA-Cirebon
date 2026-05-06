@@ -203,7 +203,7 @@
                             @foreach($perGelombang as $gelName => $nilaiGel)
                                 @php
                                     $avgGel = $nilaiGel->avg(fn($n) => $n->nilai_aktual ?? $n->total_nilai);
-                                    $pengujiGel = $nilaiGel->first()->penguji->name ?? '-';
+                                    $pengujiGel = $nilaiGel->pluck('penguji.name')->filter()->unique()->implode(', ') ?: '-';
                                 @endphp
                                 <div class="border rounded-lg p-3">
                                     <div class="font-medium text-gray-800">{{ $gelName }}</div>
