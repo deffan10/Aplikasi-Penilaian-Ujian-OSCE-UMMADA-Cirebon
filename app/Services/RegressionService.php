@@ -138,6 +138,11 @@ class RegressionService
             $result = $this->calculateNilaiAcuan($jadwalId, $stasiId);
             if ($result) {
                 $results->push($result);
+            } else {
+                // Remove stale nilai acuan if data is no longer sufficient
+                NilaiAcuanStasi::where('jadwal_id', $jadwalId)
+                    ->where('stasi_id', $stasiId)
+                    ->delete();
             }
         }
 
