@@ -33,18 +33,29 @@ class RegressionService
             return null;
         }
 
+        // Group by mahasiswa_id to handle multiple penguji per mahasiswa
+        // Each mahasiswa = 1 data point (averaged if multiple penguji)
+        $nilaiByMahasiswa = $nilaiData->groupBy('mahasiswa_id');
+
         // Prepare data for regression
-        // X = nilai_aktual (checklist score = Σ(skor × bobot))
-        // Y = global rating value (1-4)
+        // X = nilai_aktual (checklist score = Σ(skor × bobot)), averaged per mahasiswa
+        // Y = global rating value (1-4), averaged per mahasiswa
         $xValues = [];
         $yValues = [];
 
-        foreach ($nilaiData as $nilai) {
-            if ($nilai->globalRating) {
-                // Include all nilai_aktual including 0
-                $xValues[] = (float) ($nilai->nilai_aktual ?? 0);
-                $yValues[] = (float) $nilai->globalRating->nilai;
+        foreach ($nilaiByMahasiswa as $mahasiswaId => $nilaiGroup) {
+            // Filter only entries with valid globalRating
+            $validEntries = $nilaiGroup->filter(fn($n) => $n->globalRating);
+            if ($validEntries->isEmpty()) {
+                continue;
             }
+
+            // Average nilai_aktual and global_rating across penguji for this mahasiswa
+            $avgNilaiAktual = $validEntries->avg(fn($n) => (float) ($n->nilai_aktual ?? 0));
+            $avgGlobalRating = $validEntries->avg(fn($n) => (float) $n->globalRating->nilai);
+
+            $xValues[] = $avgNilaiAktual;
+            $yValues[] = $avgGlobalRating;
         }
 
         $n = count($xValues);
