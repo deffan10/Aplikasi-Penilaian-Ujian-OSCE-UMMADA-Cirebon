@@ -53,65 +53,6 @@
                     </div>
                 </div>
 
-                {{-- Penguji per Stasi --}}
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">Penguji per Stasi</h3>
-                    <p class="text-sm text-gray-500 mb-4">Pilih 1 penguji untuk setiap stasi di gelombang ini.</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($stasiList as $stasi)
-                            <div class="border rounded-lg p-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ $stasi->nama }}</label>
-                                <select name="penguji[{{ $stasi->id }}]" 
-                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                                    <option value="">-- Pilih Penguji --</option>
-                                    @foreach($pengujiList as $penguji)
-                                        <option value="{{ $penguji->id }}" {{ old('penguji.' . $stasi->id) == $penguji->id ? 'selected' : '' }}>
-                                            {{ $penguji->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                {{-- Mahasiswa --}}
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">Mahasiswa Peserta</h3>
-                    <p class="text-sm text-gray-500 mb-4">
-                        Pilih mahasiswa yang akan mengikuti ujian di gelombang ini. 
-                        Tersedia {{ $availableMahasiswa->count() }} mahasiswa yang belum diassign ke gelombang manapun.
-                    </p>
-                    
-                    @if($availableMahasiswa->count() > 0)
-                        <div class="mb-4 flex gap-2">
-                            <button type="button" onclick="selectAll()" class="text-sm text-indigo-600 hover:text-indigo-800">Pilih Semua</button>
-                            <span class="text-gray-300">|</span>
-                            <button type="button" onclick="deselectAll()" class="text-sm text-indigo-600 hover:text-indigo-800">Batal Pilih</button>
-                        </div>
-                        
-                        <div class="max-h-64 overflow-y-auto border rounded-lg p-3">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                @foreach($availableMahasiswa as $mhs)
-                                    <label class="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
-                                        <input type="checkbox" name="mahasiswa[]" value="{{ $mhs->id }}" 
-                                            class="mahasiswa-checkbox rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                                            {{ in_array($mhs->id, old('mahasiswa', [])) ? 'checked' : '' }}>
-                                        <span>{{ $mhs->nim }} - {{ $mhs->nama }}</span>
-                                    </label>
-                                @endforeach
-                            </div>
-                        </div>
-                    @else
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <p class="text-yellow-800 text-sm">
-                                Semua mahasiswa peserta jadwal ini sudah diassign ke gelombang lain.
-                            </p>
-                        </div>
-                    @endif
-                </div>
-
                 {{-- Submit --}}
                 <div class="flex justify-end gap-2 pt-4 border-t">
                     <a href="{{ route('admin.jadwal.gelombang.index', $jadwal) }}" 
@@ -128,13 +69,4 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-function selectAll() {
-    document.querySelectorAll('.mahasiswa-checkbox').forEach(cb => cb.checked = true);
-}
-function deselectAll() {
-    document.querySelectorAll('.mahasiswa-checkbox').forEach(cb => cb.checked = false);
-}
-</script>
-@endpush
+
