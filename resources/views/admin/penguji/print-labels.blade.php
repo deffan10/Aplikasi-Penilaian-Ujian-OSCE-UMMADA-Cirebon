@@ -164,6 +164,39 @@
             margin-right: 2px;
         }
 
+        .label-assignment {
+            margin-top: 1.5mm;
+            padding-top: 2mm;
+            border-top: 1px dashed #999;
+        }
+
+        .assign-row {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 1px;
+            flex-wrap: wrap;
+        }
+
+        .assign-badge {
+            display: inline-block;
+            padding: 0.5px 4px;
+            border-radius: 2px;
+            font-size: 7.5px;
+            border: 0.5px solid #666;
+        }
+
+        .assign-badge.stasi {
+            font-weight: bold;
+        }
+
+        .assign-badge.gelombang {
+            font-style: italic;
+        }
+
+        .assign-badge.jadwal {
+            color: #444;
+        }
+
         @media print {
             .no-print {
                 display: none !important;
@@ -253,11 +286,14 @@
                             <span class="label-value">: {{ $p->plain_password ?? '********' }}</span>
                         </div>
 
-                        @if(isset($pengujiStasiMap[$p->id]) && $pengujiStasiMap[$p->id]->count() > 0)
-                            <div class="label-stasi">
-                                <span class="label-key" style="display: inline;">Stasi:</span>
-                                @foreach($pengujiStasiMap[$p->id] as $stasi)
-                                    <span class="stasi-badge">{{ $stasi->nama }}</span>
+                        @if(isset($pengujiAssignments[$p->id]) && $pengujiAssignments[$p->id]->count() > 0)
+                            <div class="label-assignment">
+                                @foreach($pengujiAssignments[$p->id] as $assign)
+                                    <div class="assign-row">
+                                        <span class="assign-badge stasi">{{ $assign->stasi_nama }}</span>
+                                        <span class="assign-badge gelombang">{{ $assign->gelombang_nama }}</span>
+                                        <span class="assign-badge jadwal">{{ $assign->jadwal_nama }}</span>
+                                    </div>
                                 @endforeach
                             </div>
                         @endif
