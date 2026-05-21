@@ -245,16 +245,25 @@ class PengujiController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Load stasi assignments from active jadwal (gelombang_penguji)
+        // Load stasi + jadwal + gelombang assignments from active jadwal
         $activeJadwalIds = \App\Models\Jadwal::where('is_arsip', false)->pluck('id');
         $activeGelombangIds = \App\Models\Gelombang::whereIn('jadwal_id', $activeJadwalIds)->pluck('id');
         
-        $pengujiStasiMap = \App\Models\GelombangPenguji::whereIn('gelombang_id', $activeGelombangIds)
-            ->with('stasi')
+        // Get full assignment info: stasi, gelombang, jadwal
+        $pengujiAssignments = \App\Models\GelombangPenguji::whereIn('gelombang_id', $activeGelombangIds)
+            ->with(['stasi', 'gelombang.jadwal'])
             ->get()
             ->groupBy('penguji_id')
             ->map(function ($items) {
-                return $items->pluck('stasi')->unique('id')->values();
+                return $items->map(function ($gp) {
+                    return (object) [
+                        'stasi_nama' => $gp->stasi->nama ?? '-',
+                        'gelombang_nama' => $gp->gelombang->nama ?? '-',
+                        'jadwal_nama' => $gp->gelombang->jadwal->nama ?? '-',
+                    ];
+                })->unique(function ($item) {
+                    return $item->stasi_nama . '|' . $item->gelombang_nama . '|' . $item->jadwal_nama;
+                })->values();
             });
 
         // Load label header settings
@@ -264,7 +273,7 @@ class PengujiController extends Controller
         $labelLogo = \App\Models\Setting::get('label_logo_path');
 
         return view('admin.penguji.print-labels', compact(
-            'penguji', 'pengujiStasiMap', 'labelLine1', 'labelLine2', 'labelLine3', 'labelLogo'
+            'penguji', 'pengujiAssignments', 'labelLine1', 'labelLine2', 'labelLine3', 'labelLogo'
         ));
     }
 }
