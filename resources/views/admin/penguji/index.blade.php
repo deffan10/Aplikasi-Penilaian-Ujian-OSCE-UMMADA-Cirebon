@@ -8,12 +8,12 @@
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-semibold">Kelola Penguji</h2>
             <div class="flex gap-2">
-                <a href="{{ route('admin.penguji.print-labels') }}" target="_blank" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                <button onclick="document.getElementById('printLabelModal').classList.remove('hidden')" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
                     <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                     </svg>
                     Print Label
-                </a>
+                </button>
                 <a href="{{ route('admin.penguji.import-form') }}" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
                     <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
@@ -84,6 +84,55 @@
             </table>
         </div>
         <div class="mt-4">{{ $penguji->links() }}</div>
+    </div>
+</div>
+
+{{-- Print Label Modal --}}
+<div id="printLabelModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="document.getElementById('printLabelModal').classList.add('hidden')"></div>
+        
+        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 z-10">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Print Label Penguji</h3>
+                <button onclick="document.getElementById('printLabelModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <p class="text-sm text-gray-500 mb-4">Pilih jadwal ujian untuk mencetak label penguji yang terdaftar:</p>
+
+            @if($jadwalList->count() > 0)
+                <div class="space-y-2 max-h-64 overflow-y-auto">
+                    @foreach($jadwalList as $jadwal)
+                        <a href="{{ route('admin.penguji.print-labels', ['jadwal_id' => $jadwal->id]) }}" 
+                           target="_blank"
+                           class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-colors">
+                            <div>
+                                <div class="font-medium text-gray-900 text-sm">{{ $jadwal->nama }}</div>
+                                <div class="text-xs text-gray-500 mt-0.5">{{ $jadwal->mulai ? $jadwal->mulai->format('d M Y') : '-' }}</div>
+                            </div>
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                        </a>
+                    @endforeach
+                </div>
+            @else
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p class="text-yellow-800 text-sm">Belum ada jadwal aktif.</p>
+                </div>
+            @endif
+
+            <div class="mt-4 flex justify-end">
+                <button onclick="document.getElementById('printLabelModal').classList.add('hidden')" 
+                    class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
+                    Tutup
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

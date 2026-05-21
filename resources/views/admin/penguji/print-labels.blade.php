@@ -16,7 +16,6 @@
             font-size: 11px;
         }
 
-        /* Print button - hide when printing */
         .no-print {
             padding: 15px 20px;
             background: #f3f4f6;
@@ -48,10 +47,6 @@
             font-size: 14px;
         }
 
-        .no-print a:hover {
-            background: #4b5563;
-        }
-
         .no-print .info {
             display: block;
             margin-top: 10px;
@@ -59,7 +54,7 @@
             font-size: 13px;
         }
 
-        /* Page layout - A4: 210mm x 297mm, margin 5mm each side = 200mm x 287mm usable */
+        /* A4: 210mm x 297mm */
         .page {
             width: 210mm;
             height: 297mm;
@@ -76,7 +71,7 @@
             page-break-after: avoid;
         }
 
-        /* Each label: 100mm x 57.4mm (200mm/2 cols, 287mm/5 rows) */
+        /* 100mm x 57.4mm per label */
         .label {
             width: 100mm;
             height: 57.4mm;
@@ -84,7 +79,6 @@
             padding: 4mm;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             overflow: hidden;
         }
 
@@ -154,23 +148,34 @@
             margin-top: 1.5mm;
             padding-top: 2mm;
             border-top: 1px dashed #999;
-            font-size: 9px;
         }
 
-        .assign-row {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            margin-bottom: 1px;
-        }
-
-        .assign-stasi {
-            font-weight: bold;
-            font-size: 9px;
-        }
-
-        .assign-detail {
+        .assign-table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 8px;
+        }
+
+        .assign-table td {
+            padding: 0.5mm 0;
+            vertical-align: middle;
+        }
+
+        .assign-table .col-stasi {
+            font-weight: bold;
+            font-size: 8.5px;
+            white-space: nowrap;
+        }
+
+        .assign-table .col-gelombang {
+            text-align: center;
+            font-size: 8px;
+        }
+
+        .assign-table .col-waktu {
+            text-align: right;
+            font-size: 8px;
+            white-space: nowrap;
             color: #333;
         }
 
@@ -199,7 +204,6 @@
             }
         }
 
-        /* Screen preview styling */
         @media screen {
             body {
                 background: #e5e7eb;
@@ -217,7 +221,7 @@
 <body>
     <div class="no-print">
         <button onclick="window.print()">🖨️ Print Labels</button>
-        <a href="{{ route('admin.penguji.print-labels') }}">← Pilih Jadwal Lain</a>
+        <a href="javascript:window.close()">✕ Tutup</a>
         <span class="info">
             Jadwal: <strong>{{ $jadwal->nama }}</strong> 
             ({{ $jadwal->mulai ? $jadwal->mulai->format('d M Y') : '-' }})
@@ -275,22 +279,21 @@
 
                             @if(isset($pengujiAssignments[$p->id]) && $pengujiAssignments[$p->id]->count() > 0)
                                 <div class="label-assignment">
-                                    @foreach($pengujiAssignments[$p->id] as $assign)
-                                        <div class="assign-row">
-                                            <span class="assign-stasi">{{ $assign->stasi_nama }}</span>
-                                            <span class="assign-detail">| {{ $assign->gelombang_nama }}</span>
-                                            @if($assign->waktu)
-                                                <span class="assign-detail">({{ $assign->waktu }})</span>
-                                            @endif
-                                        </div>
-                                    @endforeach
+                                    <table class="assign-table">
+                                        @foreach($pengujiAssignments[$p->id] as $assign)
+                                            <tr>
+                                                <td class="col-stasi">{{ $assign->stasi_nama }}</td>
+                                                <td class="col-gelombang">{{ $assign->gelombang_nama }}</td>
+                                                <td class="col-waktu">{{ $assign->tanggal }} {{ $assign->waktu }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </table>
                                 </div>
                             @endif
                         </div>
                     </div>
                 @endforeach
 
-                {{-- Fill empty cells if last page not full --}}
                 @for($i = $pageItems->count(); $i < 10; $i++)
                     <div class="label" style="border: 1px dashed #ccc;"></div>
                 @endfor

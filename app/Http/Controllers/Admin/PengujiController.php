@@ -30,7 +30,12 @@ class PengujiController extends Controller
                 return $items->pluck('stasi')->unique('id')->values();
             });
 
-        return view('admin.penguji.index', compact('penguji', 'pengujiStasiMap'));
+        // Load jadwal list for print label modal
+        $jadwalList = \App\Models\Jadwal::where('is_arsip', false)
+            ->orderBy('mulai', 'desc')
+            ->get();
+
+        return view('admin.penguji.index', compact('penguji', 'pengujiStasiMap', 'jadwalList'));
     }
 
     public function create()
@@ -265,10 +270,13 @@ class PengujiController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Format tanggal jadwal
+        $tanggalJadwal = $jadwal->mulai ? $jadwal->mulai->format('d M Y') : '';
+
         // Group assignments by penguji
         $pengujiAssignments = $assignments->groupBy('penguji_id')
-            ->map(function ($items) {
-                return $items->map(function ($gp) {
+            ->map(function ($items) use ($tanggalJadwal) {
+                return $items->map(function ($gp) use ($tanggalJadwal) {
                     $waktu = '';
                     if ($gp->gelombang->waktu_mulai) {
                         $waktu = $gp->gelombang->waktu_mulai->format('H:i');
@@ -280,6 +288,7 @@ class PengujiController extends Controller
                         'stasi_nama' => $gp->stasi->nama ?? '-',
                         'gelombang_nama' => $gp->gelombang->nama ?? '-',
                         'waktu' => $waktu,
+                        'tanggal' => $tanggalJadwal,
                     ];
                 })->unique(function ($item) {
                     return $item->stasi_nama . '|' . $item->gelombang_nama;
