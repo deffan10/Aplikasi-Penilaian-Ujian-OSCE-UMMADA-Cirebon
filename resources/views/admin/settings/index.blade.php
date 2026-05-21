@@ -46,6 +46,75 @@
                 @error('kop_surat') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
+            {{-- Label Header Section --}}
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4 pb-2 border-b">Header Label Print</h3>
+                <p class="text-sm text-gray-500 mb-4">Pengaturan kop/header yang muncul di setiap label saat print (penguji/mahasiswa). Bisa berisi nama institusi, fakultas, program studi, dll.</p>
+                
+                {{-- Logo Label --}}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Logo Label (opsional)</label>
+                    @if($setting->label_logo_path)
+                        <div class="mb-2 p-2 bg-gray-50 rounded inline-block">
+                            <img src="{{ asset('storage/' . $setting->label_logo_path) }}" alt="Logo Label" class="h-10">
+                        </div>
+                    @endif
+                    <input type="file" name="label_logo" accept="image/png,image/jpeg"
+                        class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:border-indigo-500 focus:ring-indigo-500">
+                    <p class="text-xs text-gray-500 mt-1">Logo kecil yang tampil di kiri header label. Ukuran disarankan 80x80px. Maks 2MB.</p>
+                    @error('label_logo') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="label_header_line1" class="block text-sm font-medium text-gray-700 mb-1">Baris 1 (Nama Institusi)</label>
+                        <input type="text" name="label_header_line1" id="label_header_line1" 
+                            value="{{ old('label_header_line1', $setting->label_header_line1 ?? '') }}"
+                            placeholder="Contoh: UNIVERSITAS MUHAMMADIYAH MAJALENGKA"
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('label_header_line1') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="label_header_line2" class="block text-sm font-medium text-gray-700 mb-1">Baris 2 (Fakultas/Program)</label>
+                        <input type="text" name="label_header_line2" id="label_header_line2" 
+                            value="{{ old('label_header_line2', $setting->label_header_line2 ?? '') }}"
+                            placeholder="Contoh: FAKULTAS FARMASI"
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('label_header_line2') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="label_header_line3" class="block text-sm font-medium text-gray-700 mb-1">Baris 3 (Keterangan tambahan)</label>
+                        <input type="text" name="label_header_line3" id="label_header_line3" 
+                            value="{{ old('label_header_line3', $setting->label_header_line3 ?? '') }}"
+                            placeholder="Contoh: UJIAN OSCE FARMASI 2026"
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('label_header_line3') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                {{-- Preview --}}
+                <div class="mt-4 p-3 bg-gray-50 border rounded-lg">
+                    <p class="text-xs text-gray-500 mb-2">Preview header label:</p>
+                    <div class="text-center border border-dashed border-gray-300 p-2 bg-white rounded">
+                        <div style="font-size: 9px; font-weight: bold; text-transform: uppercase;">
+                            {{ $setting->label_header_line1 ?? 'NAMA INSTITUSI' }}
+                        </div>
+                        @if($setting->label_header_line2)
+                            <div style="font-size: 8px; font-weight: bold;">
+                                {{ $setting->label_header_line2 }}
+                            </div>
+                        @endif
+                        @if($setting->label_header_line3)
+                            <div style="font-size: 8px;">
+                                {{ $setting->label_header_line3 }}
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
             {{-- Penandatangan Section --}}
             <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-900 mb-4 pb-2 border-b">Penandatangan Dokumen</h3>

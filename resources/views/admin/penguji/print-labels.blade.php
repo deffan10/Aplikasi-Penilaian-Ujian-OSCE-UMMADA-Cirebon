@@ -74,14 +74,40 @@
         }
 
         .label-header {
-            font-size: 10px;
-            font-weight: bold;
             text-align: center;
-            margin-bottom: 3mm;
+            margin-bottom: 2mm;
             padding-bottom: 2mm;
-            border-bottom: 1px dashed #999;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2mm;
+        }
+
+        .label-header-logo {
+            height: 10mm;
+            width: auto;
+            flex-shrink: 0;
+        }
+
+        .label-header-text {
+            text-align: center;
+        }
+
+        .label-header-line1 {
+            font-size: 9px;
+            font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
+        }
+
+        .label-header-line2 {
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        .label-header-line3 {
+            font-size: 8px;
         }
 
         .label-row {
@@ -155,7 +181,25 @@
     <div class="labels-container">
         @foreach($penguji as $p)
             <div class="label">
-                <div class="label-header">UJIAN OSCE - Login Penguji</div>
+                <div class="label-header">
+                    @if($labelLogo)
+                        <img src="{{ asset('storage/' . $labelLogo) }}" class="label-header-logo" alt="Logo">
+                    @endif
+                    <div class="label-header-text">
+                        @if($labelLine1)
+                            <div class="label-header-line1">{{ $labelLine1 }}</div>
+                        @endif
+                        @if($labelLine2)
+                            <div class="label-header-line2">{{ $labelLine2 }}</div>
+                        @endif
+                        @if($labelLine3)
+                            <div class="label-header-line3">{{ $labelLine3 }}</div>
+                        @endif
+                        @if(!$labelLine1 && !$labelLine2 && !$labelLine3)
+                            <div class="label-header-line1">UJIAN OSCE - Login Penguji</div>
+                        @endif
+                    </div>
+                </div>
                 
                 <div class="label-row">
                     <span class="label-key">Nama</span>
