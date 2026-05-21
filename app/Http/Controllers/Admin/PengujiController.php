@@ -257,6 +257,14 @@ class PengujiController extends Controller
                 return $items->pluck('stasi')->unique('id')->values();
             });
 
-        return view('admin.penguji.print-labels', compact('penguji', 'pengujiStasiMap'));
+        // Load label header settings
+        $labelLine1 = \App\Models\Setting::get('label_header_line1', '');
+        $labelLine2 = \App\Models\Setting::get('label_header_line2', '');
+        $labelLine3 = \App\Models\Setting::get('label_header_line3', '');
+        $labelLogo = \App\Models\Setting::get('label_logo_path');
+
+        return view('admin.penguji.print-labels', compact(
+            'penguji', 'pengujiStasiMap', 'labelLine1', 'labelLine2', 'labelLine3', 'labelLogo'
+        ));
     }
 }
