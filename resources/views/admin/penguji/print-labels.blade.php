@@ -52,25 +52,39 @@
             background: #4b5563;
         }
 
-        /* Label container */
-        .labels-container {
-            display: flex;
-            flex-wrap: wrap;
-            padding: 5mm;
-            gap: 0;
+        .no-print .info {
+            margin-left: 15px;
+            color: #6b7280;
+            font-size: 13px;
         }
 
-        /* Each label - 105mm x 48mm (fits ~6 labels on A4 portrait in 2 columns) */
+        /* Page layout - A4: 210mm x 297mm, margin 5mm each side = 200mm x 287mm usable */
+        .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 5mm;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: repeat(5, 1fr);
+            gap: 0;
+            page-break-after: always;
+        }
+
+        .page:last-child {
+            page-break-after: avoid;
+        }
+
+        /* Each label: 100mm x 57.4mm (200mm/2 cols, 287mm/5 rows) */
         .label {
-            width: 95mm;
-            height: 45mm;
+            width: 100mm;
+            height: 57.4mm;
             border: 1px solid #333;
             padding: 4mm;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            margin: 1.5mm;
-            page-break-inside: avoid;
+            overflow: hidden;
         }
 
         .label-header {
@@ -110,6 +124,13 @@
             font-size: 8px;
         }
 
+        .label-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
         .label-row {
             display: flex;
             margin-bottom: 1.5mm;
@@ -136,8 +157,7 @@
 
         .label-stasi .stasi-badge {
             display: inline-block;
-            background: #eef2ff;
-            border: 1px solid #c7d2fe;
+            border: 1px solid #666;
             padding: 1px 5px;
             border-radius: 3px;
             font-size: 9px;
@@ -154,8 +174,9 @@
                 padding: 0;
             }
 
-            .labels-container {
-                padding: 3mm;
+            .page {
+                margin: 0;
+                padding: 5mm;
             }
 
             .label {
@@ -164,7 +185,21 @@
 
             @page {
                 size: A4 portrait;
-                margin: 5mm;
+                margin: 0;
+            }
+        }
+
+        /* Screen preview styling */
+        @media screen {
+            body {
+                background: #e5e7eb;
+                padding: 20px 0;
+            }
+
+            .page {
+                background: white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                margin-bottom: 20px;
             }
         }
     </style>
@@ -173,59 +208,68 @@
     <div class="no-print">
         <button onclick="window.print()">🖨️ Print Labels</button>
         <a href="{{ route('admin.penguji.index') }}">← Kembali</a>
-        <span style="margin-left: 15px; color: #6b7280; font-size: 13px;">
-            Total: {{ $penguji->count() }} label penguji
+        <span class="info">
+            Total: {{ $penguji->count() }} penguji | {{ ceil($penguji->count() / 10) }} halaman (10 label/halaman)
         </span>
     </div>
 
-    <div class="labels-container">
-        @foreach($penguji as $p)
-            <div class="label">
-                <div class="label-header">
-                    @if($labelLogo)
-                        <img src="{{ asset('storage/' . $labelLogo) }}" class="label-header-logo" alt="Logo">
-                    @endif
-                    <div class="label-header-text">
-                        @if($labelLine1)
-                            <div class="label-header-line1">{{ $labelLine1 }}</div>
+    @foreach($penguji->chunk(10) as $pageItems)
+        <div class="page">
+            @foreach($pageItems as $p)
+                <div class="label">
+                    <div class="label-header">
+                        @if($labelLogo)
+                            <img src="{{ asset('storage/' . $labelLogo) }}" class="label-header-logo" alt="Logo">
                         @endif
-                        @if($labelLine2)
-                            <div class="label-header-line2">{{ $labelLine2 }}</div>
-                        @endif
-                        @if($labelLine3)
-                            <div class="label-header-line3">{{ $labelLine3 }}</div>
-                        @endif
-                        @if(!$labelLine1 && !$labelLine2 && !$labelLine3)
-                            <div class="label-header-line1">UJIAN OSCE - Login Penguji</div>
-                        @endif
+                        <div class="label-header-text">
+                            @if($labelLine1)
+                                <div class="label-header-line1">{{ $labelLine1 }}</div>
+                            @endif
+                            @if($labelLine2)
+                                <div class="label-header-line2">{{ $labelLine2 }}</div>
+                            @endif
+                            @if($labelLine3)
+                                <div class="label-header-line3">{{ $labelLine3 }}</div>
+                            @endif
+                            @if(!$labelLine1 && !$labelLine2 && !$labelLine3)
+                                <div class="label-header-line1">UJIAN OSCE - Login Penguji</div>
+                            @endif
+                        </div>
                     </div>
-                </div>
-                
-                <div class="label-row">
-                    <span class="label-key">Nama</span>
-                    <span class="label-value">: {{ $p->name }}</span>
-                </div>
-                
-                <div class="label-row">
-                    <span class="label-key">Username</span>
-                    <span class="label-value">: {{ $p->username }}</span>
-                </div>
-                
-                <div class="label-row">
-                    <span class="label-key">Password</span>
-                    <span class="label-value">: {{ $p->plain_password ?? '********' }}</span>
-                </div>
 
-                @if(isset($pengujiStasiMap[$p->id]) && $pengujiStasiMap[$p->id]->count() > 0)
-                    <div class="label-stasi">
-                        <span class="label-key" style="display: inline;">Stasi:</span>
-                        @foreach($pengujiStasiMap[$p->id] as $stasi)
-                            <span class="stasi-badge">{{ $stasi->nama }}</span>
-                        @endforeach
+                    <div class="label-body">
+                        <div class="label-row">
+                            <span class="label-key">Nama</span>
+                            <span class="label-value">: {{ $p->name }}</span>
+                        </div>
+                        
+                        <div class="label-row">
+                            <span class="label-key">Username</span>
+                            <span class="label-value">: {{ $p->username }}</span>
+                        </div>
+                        
+                        <div class="label-row">
+                            <span class="label-key">Password</span>
+                            <span class="label-value">: {{ $p->plain_password ?? '********' }}</span>
+                        </div>
+
+                        @if(isset($pengujiStasiMap[$p->id]) && $pengujiStasiMap[$p->id]->count() > 0)
+                            <div class="label-stasi">
+                                <span class="label-key" style="display: inline;">Stasi:</span>
+                                @foreach($pengujiStasiMap[$p->id] as $stasi)
+                                    <span class="stasi-badge">{{ $stasi->nama }}</span>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
-                @endif
-            </div>
-        @endforeach
-    </div>
+                </div>
+            @endforeach
+
+            {{-- Fill empty cells if last page not full --}}
+            @for($i = $pageItems->count(); $i < 10; $i++)
+                <div class="label" style="border: 1px dashed #ccc;"></div>
+            @endfor
+        </div>
+    @endforeach
 </body>
 </html>
