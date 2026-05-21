@@ -53,29 +53,6 @@
                     </div>
                 </div>
 
-                {{-- Penguji per Stasi --}}
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">Penguji per Stasi</h3>
-                    <p class="text-sm text-gray-500 mb-4">Pilih 1 penguji untuk setiap stasi di gelombang ini.</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($stasiList as $stasi)
-                            <div class="border rounded-lg p-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ $stasi->nama }}</label>
-                                <select name="penguji[{{ $stasi->id }}]" 
-                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                                    <option value="">-- Pilih Penguji --</option>
-                                    @foreach($pengujiList as $penguji)
-                                        <option value="{{ $penguji->id }}" {{ old('penguji.' . $stasi->id) == $penguji->id ? 'selected' : '' }}>
-                                            {{ $penguji->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
                 {{-- Mahasiswa --}}
                 <div>
                     <h3 class="text-lg font-medium text-gray-900 mb-3">Mahasiswa Peserta</h3>

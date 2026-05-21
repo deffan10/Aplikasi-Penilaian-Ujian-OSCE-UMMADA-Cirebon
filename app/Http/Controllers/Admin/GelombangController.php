@@ -46,9 +46,6 @@ class GelombangController extends Controller
      */
     public function create(Jadwal $jadwal)
     {
-        $stasiList = Stasi::where('aktif', true)->orderBy('id')->get();
-        $pengujiList = User::where('role', 'penguji')->orderBy('name')->get();
-        
         // Get mahasiswa yang belum ada di gelombang manapun untuk jadwal ini
         $assignedMahasiswaIds = $jadwal->gelombang()
             ->with('mahasiswa')
@@ -65,7 +62,7 @@ class GelombangController extends Controller
         
         $nextUrutan = $jadwal->gelombang()->max('urutan') + 1;
         
-        return view('admin.gelombang.create', compact('jadwal', 'stasiList', 'pengujiList', 'availableMahasiswa', 'nextUrutan'));
+        return view('admin.gelombang.create', compact('jadwal', 'availableMahasiswa', 'nextUrutan'));
     }
 
     /**
@@ -78,8 +75,6 @@ class GelombangController extends Controller
             'waktu_mulai' => 'nullable|date_format:H:i',
             'waktu_selesai' => 'nullable|date_format:H:i',
             'urutan' => 'required|integer|min:1',
-            'penguji' => 'array',
-            'penguji.*' => 'nullable|exists:users,id',
             'mahasiswa' => 'array',
             'mahasiswa.*' => 'exists:mahasiswa,id',
         ]);
@@ -91,19 +86,6 @@ class GelombangController extends Controller
             'waktu_selesai' => $request->waktu_selesai,
             'urutan' => $request->urutan,
         ]);
-
-        // Assign penguji per stasi
-        if ($request->has('penguji')) {
-            foreach ($request->penguji as $stasiId => $pengujiId) {
-                if ($pengujiId) {
-                    GelombangPenguji::create([
-                        'gelombang_id' => $gelombang->id,
-                        'stasi_id' => $stasiId,
-                        'penguji_id' => $pengujiId,
-                    ]);
-                }
-            }
-        }
 
         // Assign mahasiswa
         if ($request->has('mahasiswa')) {
