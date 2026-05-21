@@ -70,6 +70,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('penguji/import', [PengujiController::class, 'importForm'])->name('penguji.import-form');
     Route::post('penguji/import', [PengujiController::class, 'import'])->name('penguji.import');
     Route::get('penguji/download-template', [PengujiController::class, 'downloadTemplate'])->name('penguji.download-template');
+    Route::get('penguji/print-labels', [PengujiController::class, 'printLabels'])->name('penguji.print-labels');
     Route::resource('penguji', PengujiController::class)->except(['show']);
 
     // Jadwal Management

@@ -52,6 +52,7 @@ class PengujiController extends Controller
             'username' => $data['username'],
             'email' => $data['email'] ?? null,
             'password' => Hash::make($data['password']),
+            'plain_password' => $data['password'],
             'role' => 'penguji',
         ]);
 
@@ -80,7 +81,10 @@ class PengujiController extends Controller
         ]);
 
         if (!empty($data['password'])) {
-            $penguji->update(['password' => Hash::make($data['password'])]);
+            $penguji->update([
+                'password' => Hash::make($data['password']),
+                'plain_password' => $data['password'],
+            ]);
         }
 
         return redirect()->route('admin.penguji.index')
@@ -204,6 +208,7 @@ class PengujiController extends Controller
                         'name' => $nama,
                         'username' => $username,
                         'password' => Hash::make($password),
+                        'plain_password' => $password,
                         'role' => 'penguji',
                     ]);
 
@@ -229,5 +234,29 @@ class PengujiController extends Controller
 
         return redirect()->route('admin.penguji.index')
             ->with('success', $message);
+    }
+
+    /**
+     * Print labels for penguji (105mm label size)
+     */
+    public function printLabels()
+    {
+        $penguji = User::where('role', 'penguji')
+            ->orderBy('name')
+            ->get();
+
+        // Load stasi assignments from active jadwal (gelombang_penguji)
+        $activeJadwalIds = \App\Models\Jadwal::where('is_arsip', false)->pluck('id');
+        $activeGelombangIds = \App\Models\Gelombang::whereIn('jadwal_id', $activeJadwalIds)->pluck('id');
+        
+        $pengujiStasiMap = \App\Models\GelombangPenguji::whereIn('gelombang_id', $activeGelombangIds)
+            ->with('stasi')
+            ->get()
+            ->groupBy('penguji_id')
+            ->map(function ($items) {
+                return $items->pluck('stasi')->unique('id')->values();
+            });
+
+        return view('admin.penguji.print-labels', compact('penguji', 'pengujiStasiMap'));
     }
 }
