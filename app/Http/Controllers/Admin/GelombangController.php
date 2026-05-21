@@ -46,23 +46,9 @@ class GelombangController extends Controller
      */
     public function create(Jadwal $jadwal)
     {
-        // Get mahasiswa yang belum ada di gelombang manapun untuk jadwal ini
-        $assignedMahasiswaIds = $jadwal->gelombang()
-            ->with('mahasiswa')
-            ->get()
-            ->pluck('mahasiswa')
-            ->flatten()
-            ->pluck('id')
-            ->toArray();
-        
-        $availableMahasiswa = $jadwal->peserta()
-            ->whereNotIn('mahasiswa.id', $assignedMahasiswaIds)
-            ->orderBy('nama')
-            ->get();
-        
         $nextUrutan = $jadwal->gelombang()->max('urutan') + 1;
         
-        return view('admin.gelombang.create', compact('jadwal', 'availableMahasiswa', 'nextUrutan'));
+        return view('admin.gelombang.create', compact('jadwal', 'nextUrutan'));
     }
 
     /**
@@ -75,22 +61,15 @@ class GelombangController extends Controller
             'waktu_mulai' => 'nullable|date_format:H:i',
             'waktu_selesai' => 'nullable|date_format:H:i',
             'urutan' => 'required|integer|min:1',
-            'mahasiswa' => 'array',
-            'mahasiswa.*' => 'exists:mahasiswa,id',
         ]);
 
         // Create gelombang
-        $gelombang = $jadwal->gelombang()->create([
+        $jadwal->gelombang()->create([
             'nama' => $request->nama,
             'waktu_mulai' => $request->waktu_mulai,
             'waktu_selesai' => $request->waktu_selesai,
             'urutan' => $request->urutan,
         ]);
-
-        // Assign mahasiswa
-        if ($request->has('mahasiswa')) {
-            $gelombang->mahasiswa()->attach($request->mahasiswa);
-        }
 
         return redirect()
             ->route('admin.jadwal.gelombang.index', $jadwal)
