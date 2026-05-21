@@ -237,32 +237,52 @@ class PengujiController extends Controller
     }
 
     /**
-     * Print labels for penguji (105mm label size)
+     * Show jadwal selection before printing labels
      */
-    public function printLabels()
+    public function printLabels(Request $request)
     {
-        $penguji = User::where('role', 'penguji')
+        // If no jadwal selected, show selection page
+        if (!$request->has('jadwal_id')) {
+            $jadwalList = \App\Models\Jadwal::where('is_arsip', false)
+                ->orderBy('mulai', 'desc')
+                ->get();
+            
+            return view('admin.penguji.print-labels-select', compact('jadwalList'));
+        }
+
+        // Filter by selected jadwal
+        $jadwal = \App\Models\Jadwal::findOrFail($request->jadwal_id);
+        $gelombangIds = $jadwal->gelombang()->pluck('id');
+
+        // Get penguji assignments for this jadwal only
+        $assignments = \App\Models\GelombangPenguji::whereIn('gelombang_id', $gelombangIds)
+            ->with(['stasi', 'gelombang', 'penguji'])
+            ->get();
+
+        // Get unique penguji IDs from this jadwal
+        $pengujiIds = $assignments->pluck('penguji_id')->unique();
+        $penguji = User::whereIn('id', $pengujiIds)
             ->orderBy('name')
             ->get();
 
-        // Load stasi + jadwal + gelombang assignments from active jadwal
-        $activeJadwalIds = \App\Models\Jadwal::where('is_arsip', false)->pluck('id');
-        $activeGelombangIds = \App\Models\Gelombang::whereIn('jadwal_id', $activeJadwalIds)->pluck('id');
-        
-        // Get full assignment info: stasi, gelombang, jadwal
-        $pengujiAssignments = \App\Models\GelombangPenguji::whereIn('gelombang_id', $activeGelombangIds)
-            ->with(['stasi', 'gelombang.jadwal'])
-            ->get()
-            ->groupBy('penguji_id')
+        // Group assignments by penguji
+        $pengujiAssignments = $assignments->groupBy('penguji_id')
             ->map(function ($items) {
                 return $items->map(function ($gp) {
+                    $waktu = '';
+                    if ($gp->gelombang->waktu_mulai) {
+                        $waktu = $gp->gelombang->waktu_mulai->format('H:i');
+                        if ($gp->gelombang->waktu_selesai) {
+                            $waktu .= '-' . $gp->gelombang->waktu_selesai->format('H:i');
+                        }
+                    }
                     return (object) [
                         'stasi_nama' => $gp->stasi->nama ?? '-',
                         'gelombang_nama' => $gp->gelombang->nama ?? '-',
-                        'jadwal_nama' => $gp->gelombang->jadwal->nama ?? '-',
+                        'waktu' => $waktu,
                     ];
                 })->unique(function ($item) {
-                    return $item->stasi_nama . '|' . $item->gelombang_nama . '|' . $item->jadwal_nama;
+                    return $item->stasi_nama . '|' . $item->gelombang_nama;
                 })->values();
             });
 
@@ -273,7 +293,7 @@ class PengujiController extends Controller
         $labelLogo = \App\Models\Setting::get('label_logo_path');
 
         return view('admin.penguji.print-labels', compact(
-            'penguji', 'pengujiAssignments', 'labelLine1', 'labelLine2', 'labelLine3', 'labelLogo'
+            'penguji', 'pengujiAssignments', 'jadwal', 'labelLine1', 'labelLine2', 'labelLine3', 'labelLogo'
         ));
     }
 }

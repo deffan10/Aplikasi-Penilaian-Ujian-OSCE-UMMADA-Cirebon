@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Print Label Penguji</title>
+    <title>Print Label Penguji - {{ $jadwal->nama }}</title>
     <style>
         * {
             margin: 0;
@@ -53,7 +53,8 @@
         }
 
         .no-print .info {
-            margin-left: 15px;
+            display: block;
+            margin-top: 10px;
             color: #6b7280;
             font-size: 13px;
         }
@@ -149,52 +150,28 @@
             font-family: 'Courier New', monospace;
         }
 
-        .label-stasi {
-            margin-top: 1mm;
-            padding-top: 2mm;
-            border-top: 1px dashed #ccc;
-        }
-
-        .label-stasi .stasi-badge {
-            display: inline-block;
-            border: 1px solid #666;
-            padding: 1px 5px;
-            border-radius: 3px;
-            font-size: 9px;
-            margin-right: 2px;
-        }
-
         .label-assignment {
             margin-top: 1.5mm;
             padding-top: 2mm;
             border-top: 1px dashed #999;
+            font-size: 9px;
         }
 
         .assign-row {
             display: flex;
-            gap: 2px;
+            align-items: center;
+            gap: 3px;
             margin-bottom: 1px;
-            flex-wrap: wrap;
         }
 
-        .assign-badge {
-            display: inline-block;
-            padding: 0.5px 4px;
-            border-radius: 2px;
-            font-size: 7.5px;
-            border: 0.5px solid #666;
-        }
-
-        .assign-badge.stasi {
+        .assign-stasi {
             font-weight: bold;
+            font-size: 9px;
         }
 
-        .assign-badge.gelombang {
-            font-style: italic;
-        }
-
-        .assign-badge.jadwal {
-            color: #444;
+        .assign-detail {
+            font-size: 8px;
+            color: #333;
         }
 
         @media print {
@@ -240,72 +217,85 @@
 <body>
     <div class="no-print">
         <button onclick="window.print()">🖨️ Print Labels</button>
-        <a href="{{ route('admin.penguji.index') }}">← Kembali</a>
+        <a href="{{ route('admin.penguji.print-labels') }}">← Pilih Jadwal Lain</a>
         <span class="info">
-            Total: {{ $penguji->count() }} penguji | {{ ceil($penguji->count() / 10) }} halaman (10 label/halaman)
+            Jadwal: <strong>{{ $jadwal->nama }}</strong> 
+            ({{ $jadwal->mulai ? $jadwal->mulai->format('d M Y') : '-' }})
+            &nbsp;|&nbsp; 
+            Total: {{ $penguji->count() }} penguji &nbsp;|&nbsp; 
+            {{ ceil($penguji->count() / 10) }} halaman
         </span>
     </div>
 
-    @foreach($penguji->chunk(10) as $pageItems)
-        <div class="page">
-            @foreach($pageItems as $p)
-                <div class="label">
-                    <div class="label-header">
-                        @if($labelLogo)
-                            <img src="{{ asset('storage/' . $labelLogo) }}" class="label-header-logo" alt="Logo">
-                        @endif
-                        <div class="label-header-text">
-                            @if($labelLine1)
-                                <div class="label-header-line1">{{ $labelLine1 }}</div>
-                            @endif
-                            @if($labelLine2)
-                                <div class="label-header-line2">{{ $labelLine2 }}</div>
-                            @endif
-                            @if($labelLine3)
-                                <div class="label-header-line3">{{ $labelLine3 }}</div>
-                            @endif
-                            @if(!$labelLine1 && !$labelLine2 && !$labelLine3)
-                                <div class="label-header-line1">UJIAN OSCE - Login Penguji</div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="label-body">
-                        <div class="label-row">
-                            <span class="label-key">Nama</span>
-                            <span class="label-value">: {{ $p->name }}</span>
-                        </div>
-                        
-                        <div class="label-row">
-                            <span class="label-key">Username</span>
-                            <span class="label-value">: {{ $p->username }}</span>
-                        </div>
-                        
-                        <div class="label-row">
-                            <span class="label-key">Password</span>
-                            <span class="label-value">: {{ $p->plain_password ?? '********' }}</span>
-                        </div>
-
-                        @if(isset($pengujiAssignments[$p->id]) && $pengujiAssignments[$p->id]->count() > 0)
-                            <div class="label-assignment">
-                                @foreach($pengujiAssignments[$p->id] as $assign)
-                                    <div class="assign-row">
-                                        <span class="assign-badge stasi">{{ $assign->stasi_nama }}</span>
-                                        <span class="assign-badge gelombang">{{ $assign->gelombang_nama }}</span>
-                                        <span class="assign-badge jadwal">{{ $assign->jadwal_nama }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            @endforeach
-
-            {{-- Fill empty cells if last page not full --}}
-            @for($i = $pageItems->count(); $i < 10; $i++)
-                <div class="label" style="border: 1px dashed #ccc;"></div>
-            @endfor
+    @if($penguji->count() == 0)
+        <div style="padding: 40px; text-align: center; color: #666;">
+            <p style="font-size: 16px;">Tidak ada penguji yang terdaftar di jadwal ini.</p>
+            <p style="margin-top: 10px;">Silakan assign penguji ke gelombang terlebih dahulu.</p>
         </div>
-    @endforeach
+    @else
+        @foreach($penguji->chunk(10) as $pageItems)
+            <div class="page">
+                @foreach($pageItems as $p)
+                    <div class="label">
+                        <div class="label-header">
+                            @if($labelLogo)
+                                <img src="{{ asset('storage/' . $labelLogo) }}" class="label-header-logo" alt="Logo">
+                            @endif
+                            <div class="label-header-text">
+                                @if($labelLine1)
+                                    <div class="label-header-line1">{{ $labelLine1 }}</div>
+                                @endif
+                                @if($labelLine2)
+                                    <div class="label-header-line2">{{ $labelLine2 }}</div>
+                                @endif
+                                @if($labelLine3)
+                                    <div class="label-header-line3">{{ $labelLine3 }}</div>
+                                @endif
+                                @if(!$labelLine1 && !$labelLine2 && !$labelLine3)
+                                    <div class="label-header-line1">UJIAN OSCE - Login Penguji</div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="label-body">
+                            <div class="label-row">
+                                <span class="label-key">Nama</span>
+                                <span class="label-value">: {{ $p->name }}</span>
+                            </div>
+                            
+                            <div class="label-row">
+                                <span class="label-key">Username</span>
+                                <span class="label-value">: {{ $p->username }}</span>
+                            </div>
+                            
+                            <div class="label-row">
+                                <span class="label-key">Password</span>
+                                <span class="label-value">: {{ $p->plain_password ?? '********' }}</span>
+                            </div>
+
+                            @if(isset($pengujiAssignments[$p->id]) && $pengujiAssignments[$p->id]->count() > 0)
+                                <div class="label-assignment">
+                                    @foreach($pengujiAssignments[$p->id] as $assign)
+                                        <div class="assign-row">
+                                            <span class="assign-stasi">{{ $assign->stasi_nama }}</span>
+                                            <span class="assign-detail">| {{ $assign->gelombang_nama }}</span>
+                                            @if($assign->waktu)
+                                                <span class="assign-detail">({{ $assign->waktu }})</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+
+                {{-- Fill empty cells if last page not full --}}
+                @for($i = $pageItems->count(); $i < 10; $i++)
+                    <div class="label" style="border: 1px dashed #ccc;"></div>
+                @endfor
+            </div>
+        @endforeach
+    @endif
 </body>
 </html>
