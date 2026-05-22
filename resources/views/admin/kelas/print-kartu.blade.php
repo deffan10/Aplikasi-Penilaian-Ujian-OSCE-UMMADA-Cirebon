@@ -143,7 +143,7 @@
         }
 
         .card-nama {
-            font-size: 21px;
+            font-size: 26px;
             font-weight: bold;
             margin-bottom: 2mm;
             line-height: 1.3;
@@ -153,7 +153,7 @@
         }
 
         .card-nim {
-            font-size: 10px;
+            font-size: 16px;
             font-family: 'Courier New', monospace;
             margin-bottom: 2mm;
         }
@@ -165,19 +165,19 @@
         }
 
         .card-jadwal-nama {
-            font-size: 9px;
+            font-size: 16px;
             margin-bottom: 1.5mm;
             color: #333;
         }
 
         .card-gelombang {
-            font-size: 9px;
+            font-size: 16px;
             margin-bottom: 1.5mm;
             color: #333;
         }
 
         .card-waktu {
-            font-size: 9px;
+            font-size: 16px;
             font-weight: bold;
             color: #000;
         }
