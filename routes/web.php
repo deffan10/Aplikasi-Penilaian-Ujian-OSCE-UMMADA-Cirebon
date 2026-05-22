@@ -59,11 +59,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('kelas/arsip', [KelasController::class, 'arsip'])->name('kelas.arsip');
     Route::put('kelas/{kela}/arsipkan', [KelasController::class, 'arsipkan'])->name('kelas.arsipkan');
     Route::put('kelas/{kela}/restore', [KelasController::class, 'restore'])->name('kelas.restore');
+    Route::get('kelas/{kela}/print-kartu', [KelasController::class, 'printKartu'])->name('kelas.print-kartu');
     Route::resource('kelas', KelasController::class)->except(['show']);
 
     // Mahasiswa Management
     Route::get('mahasiswa/import', [MahasiswaController::class, 'importForm'])->name('mahasiswa.import.form');
     Route::post('mahasiswa/import', [MahasiswaController::class, 'import'])->name('mahasiswa.import');
+    Route::get('mahasiswa/upload-foto', [MahasiswaController::class, 'uploadFotoForm'])->name('mahasiswa.upload-foto.form');
+    Route::post('mahasiswa/upload-foto', [MahasiswaController::class, 'uploadFoto'])->name('mahasiswa.upload-foto');
     Route::resource('mahasiswa', MahasiswaController::class)->except(['show']);
 
     // Penguji Management

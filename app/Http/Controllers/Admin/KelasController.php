@@ -11,7 +11,8 @@ class KelasController extends Controller
     public function index()
     {
         $kelas = Kelas::aktif()->withCount('mahasiswa')->orderBy('kode')->paginate(20);
-        return view('admin.kelas.index', compact('kelas'));
+        $jadwalList = \App\Models\Jadwal::where('is_arsip', false)->orderBy('mulai', 'desc')->get();
+        return view('admin.kelas.index', compact('kelas', 'jadwalList'));
     }
 
     /**
@@ -94,5 +95,73 @@ class KelasController extends Controller
 
         return redirect()->route('admin.kelas.arsip')
             ->with('success', "Kelas {$kela->kode} berhasil dikembalikan.");
+    }
+
+    /**
+     * Print kartu peserta for a kelas filtered by jadwal
+     */
+    public function printKartu(Request $request, Kelas $kela)
+    {
+        $request->validate([
+            'jadwal_id' => 'required|exists:jadwal,id',
+        ]);
+
+        $jadwal = \App\Models\Jadwal::findOrFail($request->jadwal_id);
+
+        // Get mahasiswa in this kelas that are assigned to gelombang in this jadwal
+        $gelombangIds = $jadwal->gelombang()->pluck('id');
+
+        // Get mahasiswa IDs assigned to gelombang in this jadwal
+        $mahasiswaIds = \DB::table('gelombang_mahasiswa')
+            ->whereIn('gelombang_id', $gelombangIds)
+            ->pluck('mahasiswa_id');
+
+        // Get mahasiswa from this kelas that are in the jadwal
+        $mahasiswa = \App\Models\Mahasiswa::where('kelas_id', $kela->id)
+            ->whereIn('id', $mahasiswaIds)
+            ->orderBy('nama')
+            ->get();
+
+        // Get gelombang assignment per mahasiswa
+        $mahasiswaGelombang = \DB::table('gelombang_mahasiswa')
+            ->whereIn('gelombang_id', $gelombangIds)
+            ->whereIn('mahasiswa_id', $mahasiswa->pluck('id'))
+            ->get()
+            ->groupBy('mahasiswa_id');
+
+        $gelombangList = $jadwal->gelombang()->orderBy('urutan')->get()->keyBy('id');
+
+        // Build assignment data per mahasiswa
+        $mahasiswaAssignments = [];
+        foreach ($mahasiswa as $mhs) {
+            $gIds = $mahasiswaGelombang->get($mhs->id, collect())->pluck('gelombang_id');
+            $gelombangNames = [];
+            $jadwalUjian = '';
+            foreach ($gIds as $gId) {
+                $g = $gelombangList->get($gId);
+                if ($g) {
+                    $gelombangNames[] = $g->nama;
+                    if (!$jadwalUjian && $g->waktu_mulai) {
+                        $tanggal = $jadwal->mulai ? $jadwal->mulai->format('d M Y') : '';
+                        $waktu = $g->waktu_mulai->format('H:i');
+                        if ($g->waktu_selesai) {
+                            $waktu .= ' - ' . $g->waktu_selesai->format('H:i');
+                        }
+                        $jadwalUjian = $tanggal . ' ' . $waktu;
+                    }
+                }
+            }
+            $mahasiswaAssignments[$mhs->id] = (object) [
+                'gelombang' => implode(', ', $gelombangNames),
+                'jadwal_ujian' => $jadwalUjian,
+            ];
+        }
+
+        // Load label header settings
+        $labelLogo = \App\Models\Setting::get('label_logo_path');
+
+        return view('admin.kelas.print-kartu', compact(
+            'kela', 'jadwal', 'mahasiswa', 'mahasiswaAssignments', 'labelLogo'
+        ));
     }
 }

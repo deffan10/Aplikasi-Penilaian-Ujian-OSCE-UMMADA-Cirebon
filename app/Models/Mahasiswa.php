@@ -15,6 +15,7 @@ class Mahasiswa extends Model
         'nim',
         'nama',
         'kelas_id',
+        'foto',
     ];
 
     /**
