@@ -8,6 +8,12 @@
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-semibold">Kelola Mahasiswa</h2>
             <div class="flex gap-2">
+                <a href="{{ route('admin.mahasiswa.upload-foto.form') }}" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                    <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Upload Foto
+                </a>
                 <a href="{{ route('admin.mahasiswa.import.form') }}" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
                     Import Excel
                 </a>
