@@ -75,12 +75,10 @@ class MahasiswaController extends Controller
                 \Storage::disk('public')->delete($mahasiswa->foto);
             }
 
-            $path = $request->file('foto')->storeAs(
-                'foto-mahasiswa',
-                $mahasiswa->nim . '.' . $request->file('foto')->getClientOriginalExtension(),
-                'public'
+            $data['foto'] = $this->compressAndSavePhoto(
+                $request->file('foto')->getRealPath(),
+                $mahasiswa->nim
             );
-            $data['foto'] = $path;
         } else {
             unset($data['foto']);
         }
@@ -180,13 +178,20 @@ class MahasiswaController extends Controller
                 unlink(storage_path('app/public/' . $mahasiswa->foto));
             }
 
-            // Extract and save
-            $newFilename = $nim . '.' . $ext;
+            // Extract to temp, compress, then save
+            $tempPath = sys_get_temp_dir() . '/' . uniqid('foto_') . '.' . $ext;
             $content = $zip->getFromIndex($i);
-            file_put_contents($storagePath . '/' . $newFilename, $content);
+            file_put_contents($tempPath, $content);
 
-            $mahasiswa->update(['foto' => 'foto-mahasiswa/' . $newFilename]);
-            $uploaded++;
+            $savedPath = $this->compressAndSavePhoto($tempPath, $nim);
+            unlink($tempPath);
+
+            if ($savedPath) {
+                $mahasiswa->update(['foto' => $savedPath]);
+                $uploaded++;
+            } else {
+                $skipped[] = "{$filename}: gagal compress foto";
+            }
         }
 
         $zip->close();
@@ -216,14 +221,79 @@ class MahasiswaController extends Controller
             \Storage::disk('public')->delete($mahasiswa->foto);
         }
 
-        $path = $request->file('foto')->storeAs(
-            'foto-mahasiswa',
-            $mahasiswa->nim . '.' . $request->file('foto')->getClientOriginalExtension(),
-            'public'
+        $path = $this->compressAndSavePhoto(
+            $request->file('foto')->getRealPath(),
+            $mahasiswa->nim
         );
 
         $mahasiswa->update(['foto' => $path]);
 
         return back()->with('success', 'Foto berhasil diupdate.');
+    }
+
+    /**
+     * Compress and save photo to storage
+     * Resize to max 400px width, convert to JPEG quality 70
+     */
+    private function compressAndSavePhoto(string $sourcePath, string $nim): ?string
+    {
+        $storagePath = storage_path('app/public/foto-mahasiswa');
+        if (!file_exists($storagePath)) {
+            mkdir($storagePath, 0755, true);
+        }
+
+        $imageInfo = @getimagesize($sourcePath);
+        if (!$imageInfo) {
+            return null;
+        }
+
+        $mime = $imageInfo['mime'];
+        $width = $imageInfo[0];
+        $height = $imageInfo[1];
+
+        // Create image resource from source
+        switch ($mime) {
+            case 'image/jpeg':
+                $source = @imagecreatefromjpeg($sourcePath);
+                break;
+            case 'image/png':
+                $source = @imagecreatefrompng($sourcePath);
+                break;
+            default:
+                return null;
+        }
+
+        if (!$source) {
+            return null;
+        }
+
+        // Resize to max 400px width (keeping aspect ratio)
+        $maxWidth = 400;
+        if ($width > $maxWidth) {
+            $newWidth = $maxWidth;
+            $newHeight = (int) ($height * ($maxWidth / $width));
+        } else {
+            $newWidth = $width;
+            $newHeight = $height;
+        }
+
+        $resized = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Preserve transparency for PNG before converting
+        imagealphablending($resized, false);
+        imagesavealpha($resized, true);
+
+        imagecopyresampled($resized, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        // Save as JPEG with quality 70 (good balance between size and quality)
+        $filename = $nim . '.jpg';
+        $destPath = $storagePath . '/' . $filename;
+        imagejpeg($resized, $destPath, 70);
+
+        // Free memory
+        imagedestroy($source);
+        imagedestroy($resized);
+
+        return 'foto-mahasiswa/' . $filename;
     }
 }
