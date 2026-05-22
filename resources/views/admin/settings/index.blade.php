@@ -115,6 +115,41 @@
                 </div>
             </div>
 
+            {{-- Kartu Peserta Kop Section --}}
+            <div class="mb-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4 pb-2 border-b">Kop Kartu Peserta</h3>
+                <p class="text-sm text-gray-500 mb-4">Pengaturan kop/header yang muncul di setiap kartu peserta saat cetak. Logo yang digunakan sama dengan Logo Label di atas.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="kartu_kop_line1" class="block text-sm font-medium text-gray-700 mb-1">Baris 1</label>
+                        <input type="text" name="kartu_kop_line1" id="kartu_kop_line1" 
+                            value="{{ old('kartu_kop_line1', $setting->kartu_kop_line1 ?? '') }}"
+                            placeholder="Contoh: Kartu Peserta"
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('kartu_kop_line1') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="kartu_kop_line2" class="block text-sm font-medium text-gray-700 mb-1">Baris 2</label>
+                        <input type="text" name="kartu_kop_line2" id="kartu_kop_line2" 
+                            value="{{ old('kartu_kop_line2', $setting->kartu_kop_line2 ?? '') }}"
+                            placeholder="Contoh: OSCE Farmasi"
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('kartu_kop_line2') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="kartu_kop_line3" class="block text-sm font-medium text-gray-700 mb-1">Baris 3</label>
+                        <input type="text" name="kartu_kop_line3" id="kartu_kop_line3" 
+                            value="{{ old('kartu_kop_line3', $setting->kartu_kop_line3 ?? '') }}"
+                            placeholder="Contoh: Mahasiswa Farmasi Vokasi D3"
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @error('kartu_kop_line3') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </div>
+
             {{-- Penandatangan Section --}}
             <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-900 mb-4 pb-2 border-b">Penandatangan Dokumen</h3>

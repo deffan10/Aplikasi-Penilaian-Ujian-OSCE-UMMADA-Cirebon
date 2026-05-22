@@ -96,21 +96,36 @@
             padding-bottom: 3mm;
             border-bottom: 1px solid #999;
             width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2mm;
+        }
+
+        .card-header-logo {
+            height: 12mm;
+            width: auto;
+            flex-shrink: 0;
+        }
+
+        .card-header-text {
+            text-align: center;
+            flex: 1;
         }
 
         .card-header-line1 {
-            font-size: 11px;
+            font-size: 16px;
             font-weight: bold;
             text-transform: uppercase;
         }
 
         .card-header-line2 {
-            font-size: 10px;
+            font-size: 16px;
             font-weight: bold;
         }
 
         .card-header-line3 {
-            font-size: 9px;
+            font-size: 16px;
         }
 
         .card-body {
@@ -159,7 +174,7 @@
         }
 
         .card-kelas {
-            font-size: 9px;
+            font-size: 16px;
             margin-bottom: 2mm;
             color: #333;
         }
@@ -244,9 +259,25 @@
                 @foreach($pageItems as $mhs)
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-header-line1">Kartu Peserta</div>
-                            <div class="card-header-line2">OSCE Farmasi</div>
-                            <div class="card-header-line3">Mahasiswa Farmasi Vokasi D3</div>
+                            @if($labelLogo)
+                                <img src="{{ asset('storage/' . $labelLogo) }}" class="card-header-logo" alt="Logo">
+                            @endif
+                            <div class="card-header-text">
+                                @if($kartuKopLine1)
+                                    <div class="card-header-line1">{{ $kartuKopLine1 }}</div>
+                                @else
+                                    <div class="card-header-line1">Kartu Peserta</div>
+                                @endif
+                                @if($kartuKopLine2)
+                                    <div class="card-header-line2">{{ $kartuKopLine2 }}</div>
+                                @endif
+                                @if($kartuKopLine3)
+                                    <div class="card-header-line3">{{ $kartuKopLine3 }}</div>
+                                @endif
+                            </div>
+                            @if($labelLogo)
+                                <img src="{{ asset('storage/' . $labelLogo) }}" class="card-header-logo" alt="Logo">
+                            @endif
                         </div>
 
                         <div class="card-body">

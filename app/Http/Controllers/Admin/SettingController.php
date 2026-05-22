@@ -20,6 +20,9 @@ class SettingController extends Controller
             'label_header_line2' => Setting::get('label_header_line2', ''),
             'label_header_line3' => Setting::get('label_header_line3', ''),
             'label_logo_path' => Setting::get('label_logo_path'),
+            'kartu_kop_line1' => Setting::get('kartu_kop_line1', ''),
+            'kartu_kop_line2' => Setting::get('kartu_kop_line2', ''),
+            'kartu_kop_line3' => Setting::get('kartu_kop_line3', ''),
         ];
 
         return view('admin.settings.index', compact('setting'));
@@ -36,6 +39,9 @@ class SettingController extends Controller
             'label_header_line2' => 'nullable|string|max:200',
             'label_header_line3' => 'nullable|string|max:200',
             'label_logo' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'kartu_kop_line1' => 'nullable|string|max:200',
+            'kartu_kop_line2' => 'nullable|string|max:200',
+            'kartu_kop_line3' => 'nullable|string|max:200',
         ]);
 
         if ($request->hasFile('kop_surat')) {
@@ -71,6 +77,11 @@ class SettingController extends Controller
         Setting::set('label_header_line1', $request->label_header_line1);
         Setting::set('label_header_line2', $request->label_header_line2);
         Setting::set('label_header_line3', $request->label_header_line3);
+
+        // Save kartu peserta kop settings
+        Setting::set('kartu_kop_line1', $request->kartu_kop_line1);
+        Setting::set('kartu_kop_line2', $request->kartu_kop_line2);
+        Setting::set('kartu_kop_line3', $request->kartu_kop_line3);
 
         return back()->with('success', 'Pengaturan berhasil disimpan.');
     }

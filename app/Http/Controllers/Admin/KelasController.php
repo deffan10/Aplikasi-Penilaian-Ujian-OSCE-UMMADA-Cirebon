@@ -147,7 +147,7 @@ class KelasController extends Controller
                         if ($g->waktu_selesai) {
                             $waktu .= ' - ' . $g->waktu_selesai->format('H:i');
                         }
-                        $jadwalUjian = $tanggal . ' ' . $waktu;
+                        $jadwalUjian = $tanggal . ' ' . $waktu . ' WIB';
                     }
                 }
             }
@@ -159,9 +159,13 @@ class KelasController extends Controller
 
         // Load label header settings
         $labelLogo = \App\Models\Setting::get('label_logo_path');
+        $kartuKopLine1 = \App\Models\Setting::get('kartu_kop_line1', '');
+        $kartuKopLine2 = \App\Models\Setting::get('kartu_kop_line2', '');
+        $kartuKopLine3 = \App\Models\Setting::get('kartu_kop_line3', '');
 
         return view('admin.kelas.print-kartu', compact(
-            'kela', 'jadwal', 'mahasiswa', 'mahasiswaAssignments', 'labelLogo'
+            'kela', 'jadwal', 'mahasiswa', 'mahasiswaAssignments', 'labelLogo',
+            'kartuKopLine1', 'kartuKopLine2', 'kartuKopLine3'
         ));
     }
 }
