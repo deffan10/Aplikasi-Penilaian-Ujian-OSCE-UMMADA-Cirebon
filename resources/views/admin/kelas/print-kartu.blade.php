@@ -143,7 +143,7 @@
         }
 
         .card-nama {
-            font-size: 16px;
+            font-size: 21px;
             font-weight: bold;
             margin-bottom: 2mm;
             line-height: 1.3;
