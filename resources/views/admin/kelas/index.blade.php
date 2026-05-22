@@ -122,7 +122,7 @@ function openPrintModal(kelasId, kelasKode) {
     // Update all jadwal links with the correct kelas ID
     @foreach($jadwalList as $jadwal)
         document.getElementById('jadwal-link-{{ $jadwal->id }}').href = 
-            "{{ route('admin.kelas.print-kartu', '') }}/" + kelasId + "?jadwal_id={{ $jadwal->id }}";
+            "{{ url('admin/kelas') }}/" + kelasId + "/print-kartu?jadwal_id={{ $jadwal->id }}";
     @endforeach
     document.getElementById('printKartuModal').classList.remove('hidden');
 }
