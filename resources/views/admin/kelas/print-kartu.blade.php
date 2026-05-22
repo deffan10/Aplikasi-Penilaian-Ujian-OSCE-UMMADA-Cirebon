@@ -120,10 +120,14 @@
                             <div class="card-nama">{{ $mhs->nama }}</div>
                             <div class="card-nim">{{ $mhs->nim }}</div>
                             <div class="card-kelas">{{ $kela->kode }} - {{ $kela->nama }}</div>
-                            <div class="card-jadwal-nama">{{ $jadwal->nama }}</div>
+                            @if($showJadwal)
+                                <div class="card-jadwal-nama">{{ $jadwal->nama }}</div>
+                            @endif
                             @if(isset($mahasiswaAssignments[$mhs->id]))
-                                <div class="card-gelombang">{{ $mahasiswaAssignments[$mhs->id]->gelombang }}</div>
-                                @if($mahasiswaAssignments[$mhs->id]->jadwal_ujian)
+                                @if($showGelombang)
+                                    <div class="card-gelombang">{{ $mahasiswaAssignments[$mhs->id]->gelombang }}</div>
+                                @endif
+                                @if($showWaktu && $mahasiswaAssignments[$mhs->id]->jadwal_ujian)
                                     <div class="card-waktu">{{ $mahasiswaAssignments[$mhs->id]->jadwal_ujian }}</div>
                                 @endif
                             @endif
