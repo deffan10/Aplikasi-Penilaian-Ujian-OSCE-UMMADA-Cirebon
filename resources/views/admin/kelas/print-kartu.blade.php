@@ -55,35 +55,21 @@
             font-size: 13px;
         }
 
-        /* A4 landscape: 297mm x 210mm, padding 10mm = usable 277mm x 190mm */
-        /* Card: 65mm x 105mm (portrait card on landscape page) */
-        /* 4 cols: 65*4 + gap*3 = 272mm < 277mm OK */
-        /* 1 row: 105mm < 190mm OK, 2 rows: 105*2=210 > 190 nope */
-        /* So: 4 cols x 1 row = 4 per page? No... */
-        /* Actually let's do card landscape: 105mm x 65mm */
-        /* 2 cols: 105*2 + gap = 214mm < 277mm OK */
-        /* 2 rows: 65*2 + gap = 134mm < 190mm OK → but only 4 */
-        /* Better: card 65x105 portrait, page landscape */
-        /* 4 cols: 65*4 + 3*4mm gap = 272mm < 277mm OK */
-        /* 1 row: 105mm < 190mm, can we fit row 2? 105*1=105 + gap leaves 85mm for nothing */
-        /* Nope only 1 row of 105mm height on 190mm usable. Unless we make it tighter: */
-        /* But wait: can we do 105mm tall cards? 190mm / 105mm = 1.8 → only 1 row */
-        /* Solution: keep card at 65x105 portrait, do 4 cols x 1 row = 4/page */
-        /* OR: make card landscape (105w x 65h) → 2 cols x 2 rows = 4/page on landscape A4 */
-        /* BEST for 8: card landscape 105x65, page landscape: 277/105=2.6→2cols, 190/65=2.9→2rows = 4 */
-        /* For 8 cards: we need smaller. Card 65x90mm portrait on landscape A4: */
-        /* 277/65 = 4.2 → 4 cols, 190/90 = 2.1 → 2 rows = 8 cards! */
-        /* FINAL: A4 landscape, card 65mm x 90mm, 4 cols x 2 rows = 8 per page */
+        /* A4 portrait: 210mm x 297mm, padding 10mm = usable 190mm x 277mm */
+        /* Card: 90mm x 130mm portrait */
+        /* 2 cols: 90*2 + gap = 184mm < 190mm OK */
+        /* 2 rows: 130*2 + gap = 264mm < 277mm OK */
+        /* = 4 cards per page */
         .page {
-            width: 297mm;
-            height: 210mm;
+            width: 210mm;
+            height: 297mm;
             padding: 10mm;
             margin: 0 auto;
             display: flex;
             flex-wrap: wrap;
             align-content: flex-start;
             justify-content: center;
-            gap: 3mm;
+            gap: 4mm;
             page-break-after: always;
         }
 
@@ -91,12 +77,12 @@
             page-break-after: avoid;
         }
 
-        /* Card: 65mm x 90mm (portrait card, slightly shorter to fit 8 on landscape A4) */
+        /* Card: 90mm x 130mm portrait */
         .card {
-            width: 65mm;
-            height: 90mm;
+            width: 90mm;
+            height: 130mm;
             border: 1px solid #333;
-            padding: 3mm;
+            padding: 5mm;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -106,25 +92,25 @@
 
         .card-header {
             text-align: center;
-            margin-bottom: 3mm;
-            padding-bottom: 2mm;
+            margin-bottom: 4mm;
+            padding-bottom: 3mm;
             border-bottom: 1px solid #999;
             width: 100%;
         }
 
         .card-header-line1 {
-            font-size: 9px;
+            font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
         }
 
         .card-header-line2 {
-            font-size: 8px;
+            font-size: 10px;
             font-weight: bold;
         }
 
         .card-header-line3 {
-            font-size: 7.5px;
+            font-size: 9px;
         }
 
         .card-body {
@@ -138,57 +124,60 @@
         }
 
         .card-foto {
-            width: 22mm;
-            height: 30mm;
+            width: 28mm;
+            height: 38mm;
             object-fit: cover;
             border: 1px solid #ccc;
-            margin-bottom: 3mm;
+            margin-bottom: 4mm;
         }
 
         .card-foto-placeholder {
-            width: 22mm;
-            height: 30mm;
+            width: 28mm;
+            height: 38mm;
             border: 1px dashed #ccc;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 3mm;
+            margin-bottom: 4mm;
             background: #f9f9f9;
         }
 
         .card-nama {
-            font-size: 9px;
+            font-size: 12px;
             font-weight: bold;
-            margin-bottom: 1.5mm;
-            line-height: 1.2;
+            margin-bottom: 2mm;
+            line-height: 1.3;
+            text-align: center;
+            word-wrap: break-word;
+            max-width: 100%;
         }
 
         .card-nim {
-            font-size: 8.5px;
+            font-size: 10px;
             font-family: 'Courier New', monospace;
-            margin-bottom: 1.5mm;
+            margin-bottom: 2mm;
         }
 
         .card-kelas {
-            font-size: 7.5px;
-            margin-bottom: 1.5mm;
+            font-size: 9px;
+            margin-bottom: 2mm;
             color: #333;
         }
 
         .card-jadwal-nama {
-            font-size: 7.5px;
-            margin-bottom: 1mm;
+            font-size: 9px;
+            margin-bottom: 1.5mm;
             color: #333;
         }
 
         .card-gelombang {
-            font-size: 7.5px;
-            margin-bottom: 1mm;
+            font-size: 9px;
+            margin-bottom: 1.5mm;
             color: #333;
         }
 
         .card-waktu {
-            font-size: 7.5px;
+            font-size: 9px;
             font-weight: bold;
             color: #000;
         }
@@ -213,7 +202,7 @@
             }
 
             @page {
-                size: A4 landscape;
+                size: A4 portrait;
                 margin: 0;
             }
         }
@@ -240,7 +229,7 @@
             Kelas: <strong>{{ $kela->kode }}</strong> | 
             Jadwal: <strong>{{ $jadwal->nama }}</strong> ({{ $jadwal->mulai ? $jadwal->mulai->format('d M Y') : '-' }}) |
             Total: {{ $mahasiswa->count() }} peserta |
-            {{ ceil($mahasiswa->count() / 8) }} halaman (8 kartu/halaman)
+            {{ ceil($mahasiswa->count() / 4) }} halaman (4 kartu/halaman)
         </span>
     </div>
 
@@ -250,7 +239,7 @@
             <p style="margin-top: 10px;">Pastikan mahasiswa sudah di-assign ke gelombang.</p>
         </div>
     @else
-        @foreach($mahasiswa->chunk(8) as $pageItems)
+        @foreach($mahasiswa->chunk(4) as $pageItems)
             <div class="page">
                 @foreach($pageItems as $mhs)
                     <div class="card">
@@ -265,7 +254,7 @@
                                 <img src="{{ asset('storage/' . $mhs->foto) }}" class="card-foto" alt="Foto">
                             @else
                                 <div class="card-foto-placeholder">
-                                    <svg width="24" height="24" fill="#bbb" viewBox="0 0 24 24">
+                                    <svg width="28" height="28" fill="#bbb" viewBox="0 0 24 24">
                                         <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
                                     </svg>
                                 </div>
@@ -286,7 +275,7 @@
                 @endforeach
 
                 {{-- Fill empty cards --}}
-                @for($i = $pageItems->count(); $i < 8; $i++)
+                @for($i = $pageItems->count(); $i < 4; $i++)
                     <div class="card" style="border: 1px dashed #ccc;"></div>
                 @endfor
             </div>
