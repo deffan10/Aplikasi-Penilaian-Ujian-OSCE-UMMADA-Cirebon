@@ -55,18 +55,24 @@
             font-size: 13px;
         }
 
-        /* A4: 210mm x 297mm, 2 cols x 2 rows = 4 cards per page */
-        /* Card size: 105mm x 65mm (fits nicely with some padding) */
+        /* A4: 210mm x 297mm, margin 10mm = usable 190mm x 277mm */
+        /* Card B2 portrait: 65mm x 105mm */
+        /* Grid: 2 cols (65mm*2=130mm < 190mm) x 2 rows (105mm*2=210mm < 277mm) = muat */
+        /* Coba 3 cols: 65mm*3=195mm > 190mm, kebesaran */
+        /* Pakai 2 cols + spacing, tapi biar muat 6: layout 3 cols x 2 rows with smaller gap */
+        /* Actual: 190mm / 3 = 63.3mm per col — kartu 62mm lebar */
+        /* 277mm / 2 = 138mm per row — kartu 105mm tinggi, sisa 33mm */
+        /* Alternatif: 2 cols x 3 rows: 190/2=95mm (>65 ok), 277/3=92mm (<105 ga muat) */
+        /* Best: 3 cols x 2 rows, kartu 62mm x 105mm */
         .page {
             width: 210mm;
             height: 297mm;
-            padding: 10mm 0;
+            padding: 10mm;
             margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            align-content: flex-start;
-            justify-content: center;
-            gap: 0;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 2mm;
             page-break-after: always;
         }
 
@@ -74,39 +80,38 @@
             page-break-after: avoid;
         }
 
-        /* Card: 105mm x 65mm */
+        /* Card portrait: ~62mm x ~133mm (fill grid cell) */
         .card {
-            width: 105mm;
-            height: 65mm;
             border: 1px solid #333;
             padding: 4mm;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             overflow: hidden;
-            margin: 1.5mm 0;
         }
 
         .card-header {
             text-align: center;
-            margin-bottom: 2mm;
+            margin-bottom: 3mm;
+            padding-bottom: 2mm;
+            border-bottom: 1px solid #999;
             width: 100%;
         }
 
         .card-header-line1 {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: bold;
             text-transform: uppercase;
         }
 
         .card-header-line2 {
-            font-size: 9px;
+            font-size: 8px;
             font-weight: bold;
         }
 
         .card-header-line3 {
-            font-size: 8px;
+            font-size: 7.5px;
         }
 
         .card-body {
@@ -120,57 +125,57 @@
         }
 
         .card-foto {
-            width: 18mm;
-            height: 24mm;
+            width: 22mm;
+            height: 30mm;
             object-fit: cover;
             border: 1px solid #ccc;
-            margin-bottom: 2mm;
+            margin-bottom: 3mm;
         }
 
         .card-foto-placeholder {
-            width: 18mm;
-            height: 24mm;
+            width: 22mm;
+            height: 30mm;
             border: 1px dashed #ccc;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 2mm;
-            font-size: 7px;
-            color: #999;
+            margin-bottom: 3mm;
+            background: #f9f9f9;
         }
 
         .card-nama {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: bold;
-            margin-bottom: 1mm;
+            margin-bottom: 1.5mm;
+            line-height: 1.2;
         }
 
         .card-nim {
-            font-size: 9px;
+            font-size: 8.5px;
             font-family: 'Courier New', monospace;
-            margin-bottom: 1mm;
+            margin-bottom: 1.5mm;
         }
 
         .card-kelas {
-            font-size: 8px;
-            margin-bottom: 1mm;
+            font-size: 7.5px;
+            margin-bottom: 1.5mm;
             color: #333;
         }
 
         .card-jadwal-nama {
-            font-size: 8px;
-            margin-bottom: 0.5mm;
+            font-size: 7.5px;
+            margin-bottom: 1mm;
             color: #333;
         }
 
         .card-gelombang {
-            font-size: 8px;
-            margin-bottom: 0.5mm;
+            font-size: 7.5px;
+            margin-bottom: 1mm;
             color: #333;
         }
 
         .card-waktu {
-            font-size: 8px;
+            font-size: 7.5px;
             font-weight: bold;
             color: #000;
         }
@@ -187,7 +192,7 @@
 
             .page {
                 margin: 0;
-                padding: 10mm 0;
+                padding: 10mm;
             }
 
             .card {
@@ -222,7 +227,7 @@
             Kelas: <strong>{{ $kela->kode }}</strong> | 
             Jadwal: <strong>{{ $jadwal->nama }}</strong> ({{ $jadwal->mulai ? $jadwal->mulai->format('d M Y') : '-' }}) |
             Total: {{ $mahasiswa->count() }} peserta |
-            {{ ceil($mahasiswa->count() / 4) }} halaman
+            {{ ceil($mahasiswa->count() / 6) }} halaman (6 kartu/halaman)
         </span>
     </div>
 
@@ -232,7 +237,7 @@
             <p style="margin-top: 10px;">Pastikan mahasiswa sudah di-assign ke gelombang.</p>
         </div>
     @else
-        @foreach($mahasiswa->chunk(4) as $pageItems)
+        @foreach($mahasiswa->chunk(6) as $pageItems)
             <div class="page">
                 @foreach($pageItems as $mhs)
                     <div class="card">
@@ -247,7 +252,7 @@
                                 <img src="{{ asset('storage/' . $mhs->foto) }}" class="card-foto" alt="Foto">
                             @else
                                 <div class="card-foto-placeholder">
-                                    <svg width="20" height="20" fill="#bbb" viewBox="0 0 24 24">
+                                    <svg width="24" height="24" fill="#bbb" viewBox="0 0 24 24">
                                         <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
                                     </svg>
                                 </div>
@@ -268,7 +273,7 @@
                 @endforeach
 
                 {{-- Fill empty cards --}}
-                @for($i = $pageItems->count(); $i < 4; $i++)
+                @for($i = $pageItems->count(); $i < 6; $i++)
                     <div class="card" style="border: 1px dashed #ccc;"></div>
                 @endfor
             </div>
