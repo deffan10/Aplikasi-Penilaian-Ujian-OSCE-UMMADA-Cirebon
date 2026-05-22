@@ -55,24 +55,18 @@
             font-size: 13px;
         }
 
-        /* A4: 210mm x 297mm, margin 10mm = usable 190mm x 277mm */
-        /* Card B2 portrait: 65mm x 105mm */
-        /* Grid: 2 cols (65mm*2=130mm < 190mm) x 2 rows (105mm*2=210mm < 277mm) = muat */
-        /* Coba 3 cols: 65mm*3=195mm > 190mm, kebesaran */
-        /* Pakai 2 cols + spacing, tapi biar muat 6: layout 3 cols x 2 rows with smaller gap */
-        /* Actual: 190mm / 3 = 63.3mm per col — kartu 62mm lebar */
-        /* 277mm / 2 = 138mm per row — kartu 105mm tinggi, sisa 33mm */
-        /* Alternatif: 2 cols x 3 rows: 190/2=95mm (>65 ok), 277/3=92mm (<105 ga muat) */
-        /* Best: 3 cols x 2 rows, kartu 62mm x 105mm */
+        /* A4: 210mm x 297mm, padding 10mm = usable 190mm x 277mm */
+        /* Card B2 portrait: 62mm x 105mm, 3 cols x 2 rows = 6 per page */
         .page {
             width: 210mm;
             height: 297mm;
             padding: 10mm;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-            gap: 2mm;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            justify-content: space-between;
+            gap: 0;
             page-break-after: always;
         }
 
@@ -80,8 +74,10 @@
             page-break-after: avoid;
         }
 
-        /* Card portrait: ~62mm x ~133mm (fill grid cell) */
+        /* Card B2 portrait fixed size: 62mm x 133mm */
         .card {
+            width: 62mm;
+            height: 133mm;
             border: 1px solid #333;
             padding: 4mm;
             display: flex;
@@ -89,6 +85,7 @@
             align-items: center;
             justify-content: flex-start;
             overflow: hidden;
+            margin-bottom: 2mm;
         }
 
         .card-header {
