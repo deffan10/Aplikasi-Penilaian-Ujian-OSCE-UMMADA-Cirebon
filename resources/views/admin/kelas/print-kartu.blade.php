@@ -55,18 +55,35 @@
             font-size: 13px;
         }
 
-        /* A4: 210mm x 297mm, padding 10mm = usable 190mm x 277mm */
-        /* Card B2 portrait: 62mm x 105mm, 3 cols x 2 rows = 6 per page */
+        /* A4 landscape: 297mm x 210mm, padding 10mm = usable 277mm x 190mm */
+        /* Card: 65mm x 105mm (portrait card on landscape page) */
+        /* 4 cols: 65*4 + gap*3 = 272mm < 277mm OK */
+        /* 1 row: 105mm < 190mm OK, 2 rows: 105*2=210 > 190 nope */
+        /* So: 4 cols x 1 row = 4 per page? No... */
+        /* Actually let's do card landscape: 105mm x 65mm */
+        /* 2 cols: 105*2 + gap = 214mm < 277mm OK */
+        /* 2 rows: 65*2 + gap = 134mm < 190mm OK → but only 4 */
+        /* Better: card 65x105 portrait, page landscape */
+        /* 4 cols: 65*4 + 3*4mm gap = 272mm < 277mm OK */
+        /* 1 row: 105mm < 190mm, can we fit row 2? 105*1=105 + gap leaves 85mm for nothing */
+        /* Nope only 1 row of 105mm height on 190mm usable. Unless we make it tighter: */
+        /* But wait: can we do 105mm tall cards? 190mm / 105mm = 1.8 → only 1 row */
+        /* Solution: keep card at 65x105 portrait, do 4 cols x 1 row = 4/page */
+        /* OR: make card landscape (105w x 65h) → 2 cols x 2 rows = 4/page on landscape A4 */
+        /* BEST for 8: card landscape 105x65, page landscape: 277/105=2.6→2cols, 190/65=2.9→2rows = 4 */
+        /* For 8 cards: we need smaller. Card 65x90mm portrait on landscape A4: */
+        /* 277/65 = 4.2 → 4 cols, 190/90 = 2.1 → 2 rows = 8 cards! */
+        /* FINAL: A4 landscape, card 65mm x 90mm, 4 cols x 2 rows = 8 per page */
         .page {
-            width: 210mm;
-            height: 297mm;
+            width: 297mm;
+            height: 210mm;
             padding: 10mm;
             margin: 0 auto;
             display: flex;
             flex-wrap: wrap;
             align-content: flex-start;
-            justify-content: space-between;
-            gap: 0;
+            justify-content: center;
+            gap: 3mm;
             page-break-after: always;
         }
 
@@ -74,18 +91,17 @@
             page-break-after: avoid;
         }
 
-        /* Card B2 portrait fixed size: 62mm x 133mm */
+        /* Card: 65mm x 90mm (portrait card, slightly shorter to fit 8 on landscape A4) */
         .card {
-            width: 62mm;
-            height: 133mm;
+            width: 65mm;
+            height: 90mm;
             border: 1px solid #333;
-            padding: 4mm;
+            padding: 3mm;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             overflow: hidden;
-            margin-bottom: 2mm;
         }
 
         .card-header {
@@ -197,7 +213,7 @@
             }
 
             @page {
-                size: A4 portrait;
+                size: A4 landscape;
                 margin: 0;
             }
         }
@@ -224,7 +240,7 @@
             Kelas: <strong>{{ $kela->kode }}</strong> | 
             Jadwal: <strong>{{ $jadwal->nama }}</strong> ({{ $jadwal->mulai ? $jadwal->mulai->format('d M Y') : '-' }}) |
             Total: {{ $mahasiswa->count() }} peserta |
-            {{ ceil($mahasiswa->count() / 6) }} halaman (6 kartu/halaman)
+            {{ ceil($mahasiswa->count() / 8) }} halaman (8 kartu/halaman)
         </span>
     </div>
 
@@ -234,7 +250,7 @@
             <p style="margin-top: 10px;">Pastikan mahasiswa sudah di-assign ke gelombang.</p>
         </div>
     @else
-        @foreach($mahasiswa->chunk(6) as $pageItems)
+        @foreach($mahasiswa->chunk(8) as $pageItems)
             <div class="page">
                 @foreach($pageItems as $mhs)
                     <div class="card">
@@ -270,7 +286,7 @@
                 @endforeach
 
                 {{-- Fill empty cards --}}
-                @for($i = $pageItems->count(); $i < 6; $i++)
+                @for($i = $pageItems->count(); $i < 8; $i++)
                     <div class="card" style="border: 1px dashed #ccc;"></div>
                 @endfor
             </div>
