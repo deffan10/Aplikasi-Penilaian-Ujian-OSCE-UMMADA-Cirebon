@@ -164,9 +164,15 @@ class KelasController extends Controller
         $kartuKopLine2 = \App\Models\Setting::get('kartu_kop_line2', '');
         $kartuKopLine3 = \App\Models\Setting::get('kartu_kop_line3', '');
 
+        // Optional field visibility
+        $showJadwal = $request->get('show_jadwal', '1') === '1';
+        $showGelombang = $request->get('show_gelombang', '1') === '1';
+        $showWaktu = $request->get('show_waktu', '1') === '1';
+
         return view('admin.kelas.print-kartu', compact(
             'kela', 'jadwal', 'mahasiswa', 'mahasiswaAssignments',
-            'kartuLogoKiri', 'kartuLogoKanan', 'kartuKopLine1', 'kartuKopLine2', 'kartuKopLine3'
+            'kartuLogoKiri', 'kartuLogoKanan', 'kartuKopLine1', 'kartuKopLine2', 'kartuKopLine3',
+            'showJadwal', 'showGelombang', 'showWaktu'
         ));
     }
 }

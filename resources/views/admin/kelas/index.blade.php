@@ -88,7 +88,7 @@
             <p class="text-sm text-gray-500 mb-4">Pilih jadwal ujian:</p>
 
             @if($jadwalList->count() > 0)
-                <div class="space-y-2 max-h-64 overflow-y-auto">
+                <div class="space-y-2 max-h-48 overflow-y-auto">
                     @foreach($jadwalList as $jadwal)
                         <a id="jadwal-link-{{ $jadwal->id }}" href="#" 
                            target="_blank"
@@ -109,6 +109,25 @@
                 </div>
             @endif
 
+            {{-- Optional fields --}}
+            <div class="mt-4 pt-3 border-t">
+                <p class="text-xs text-gray-500 mb-2 font-medium">Tampilkan di kartu (opsional):</p>
+                <div class="space-y-1">
+                    <label class="flex items-center text-sm cursor-pointer">
+                        <input type="checkbox" id="chk_jadwal_nama" checked class="rounded border-gray-300 text-indigo-600 mr-2 chk-field">
+                        Nama Jadwal
+                    </label>
+                    <label class="flex items-center text-sm cursor-pointer">
+                        <input type="checkbox" id="chk_gelombang" checked class="rounded border-gray-300 text-indigo-600 mr-2 chk-field">
+                        Nama Gelombang
+                    </label>
+                    <label class="flex items-center text-sm cursor-pointer">
+                        <input type="checkbox" id="chk_waktu" checked class="rounded border-gray-300 text-indigo-600 mr-2 chk-field">
+                        Waktu Ujian
+                    </label>
+                </div>
+            </div>
+
             <div class="mt-4 flex justify-end">
                 <button onclick="closePrintModal()" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">Tutup</button>
             </div>
@@ -119,13 +138,26 @@
 <script>
 function openPrintModal(kelasId, kelasKode) {
     document.getElementById('modalKelasName').textContent = kelasKode;
-    // Update all jadwal links with the correct kelas ID
-    @foreach($jadwalList as $jadwal)
-        document.getElementById('jadwal-link-{{ $jadwal->id }}').href = 
-            "{{ url('admin/kelas') }}/" + kelasId + "/print-kartu?jadwal_id={{ $jadwal->id }}";
-    @endforeach
+    window._printKelasId = kelasId;
+    updatePrintLinks();
     document.getElementById('printKartuModal').classList.remove('hidden');
 }
+
+function updatePrintLinks() {
+    var kelasId = window._printKelasId;
+    var showJadwal = document.getElementById('chk_jadwal_nama').checked ? '1' : '0';
+    var showGelombang = document.getElementById('chk_gelombang').checked ? '1' : '0';
+    var showWaktu = document.getElementById('chk_waktu').checked ? '1' : '0';
+    @foreach($jadwalList as $jadwal)
+        document.getElementById('jadwal-link-{{ $jadwal->id }}').href = 
+            "{{ url('admin/kelas') }}/" + kelasId + "/print-kartu?jadwal_id={{ $jadwal->id }}&show_jadwal=" + showJadwal + "&show_gelombang=" + showGelombang + "&show_waktu=" + showWaktu;
+    @endforeach
+}
+
+// Update links when checkboxes change
+document.querySelectorAll('.chk-field').forEach(function(cb) {
+    cb.addEventListener('change', updatePrintLinks);
+});
 
 function closePrintModal() {
     document.getElementById('printKartuModal').classList.add('hidden');
