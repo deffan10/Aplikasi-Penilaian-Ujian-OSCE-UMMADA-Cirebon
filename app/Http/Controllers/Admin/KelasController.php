@@ -157,15 +157,16 @@ class KelasController extends Controller
             ];
         }
 
-        // Load label header settings
-        $labelLogo = \App\Models\Setting::get('label_logo_path');
+        // Load kartu peserta settings
+        $kartuLogoKiri = \App\Models\Setting::get('kartu_logo_kiri_path');
+        $kartuLogoKanan = \App\Models\Setting::get('kartu_logo_kanan_path');
         $kartuKopLine1 = \App\Models\Setting::get('kartu_kop_line1', '');
         $kartuKopLine2 = \App\Models\Setting::get('kartu_kop_line2', '');
         $kartuKopLine3 = \App\Models\Setting::get('kartu_kop_line3', '');
 
         return view('admin.kelas.print-kartu', compact(
-            'kela', 'jadwal', 'mahasiswa', 'mahasiswaAssignments', 'labelLogo',
-            'kartuKopLine1', 'kartuKopLine2', 'kartuKopLine3'
+            'kela', 'jadwal', 'mahasiswa', 'mahasiswaAssignments',
+            'kartuLogoKiri', 'kartuLogoKanan', 'kartuKopLine1', 'kartuKopLine2', 'kartuKopLine3'
         ));
     }
 }

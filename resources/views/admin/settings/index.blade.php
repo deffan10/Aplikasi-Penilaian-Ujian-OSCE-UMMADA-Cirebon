@@ -118,8 +118,34 @@
             {{-- Kartu Peserta Kop Section --}}
             <div class="mb-8">
                 <h3 class="text-lg font-medium text-gray-900 mb-4 pb-2 border-b">Kop Kartu Peserta</h3>
-                <p class="text-sm text-gray-500 mb-4">Pengaturan kop/header yang muncul di setiap kartu peserta saat cetak. Logo yang digunakan sama dengan Logo Label di atas.</p>
+                <p class="text-sm text-gray-500 mb-4">Pengaturan kop/header yang muncul di setiap kartu peserta saat cetak. Logo kiri dan kanan bisa berbeda.</p>
                 
+                {{-- Logo Kiri --}}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Logo Kiri</label>
+                    @if($setting->kartu_logo_kiri_path)
+                        <div class="mb-2 p-2 bg-gray-50 rounded inline-block">
+                            <img src="{{ asset('storage/' . $setting->kartu_logo_kiri_path) }}" alt="Logo Kiri" class="h-10">
+                        </div>
+                    @endif
+                    <input type="file" name="kartu_logo_kiri" accept="image/png,image/jpeg"
+                        class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:border-indigo-500 focus:ring-indigo-500">
+                    @error('kartu_logo_kiri') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                {{-- Logo Kanan --}}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Logo Kanan</label>
+                    @if($setting->kartu_logo_kanan_path)
+                        <div class="mb-2 p-2 bg-gray-50 rounded inline-block">
+                            <img src="{{ asset('storage/' . $setting->kartu_logo_kanan_path) }}" alt="Logo Kanan" class="h-10">
+                        </div>
+                    @endif
+                    <input type="file" name="kartu_logo_kanan" accept="image/png,image/jpeg"
+                        class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:border-indigo-500 focus:ring-indigo-500">
+                    @error('kartu_logo_kanan') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+                </div>
+
                 <div class="space-y-4">
                     <div>
                         <label for="kartu_kop_line1" class="block text-sm font-medium text-gray-700 mb-1">Baris 1</label>

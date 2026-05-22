@@ -23,6 +23,8 @@ class SettingController extends Controller
             'kartu_kop_line1' => Setting::get('kartu_kop_line1', ''),
             'kartu_kop_line2' => Setting::get('kartu_kop_line2', ''),
             'kartu_kop_line3' => Setting::get('kartu_kop_line3', ''),
+            'kartu_logo_kiri_path' => Setting::get('kartu_logo_kiri_path'),
+            'kartu_logo_kanan_path' => Setting::get('kartu_logo_kanan_path'),
         ];
 
         return view('admin.settings.index', compact('setting'));
@@ -42,6 +44,8 @@ class SettingController extends Controller
             'kartu_kop_line1' => 'nullable|string|max:200',
             'kartu_kop_line2' => 'nullable|string|max:200',
             'kartu_kop_line3' => 'nullable|string|max:200',
+            'kartu_logo_kiri' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'kartu_logo_kanan' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
         ]);
 
         if ($request->hasFile('kop_surat')) {
@@ -82,6 +86,24 @@ class SettingController extends Controller
         Setting::set('kartu_kop_line1', $request->kartu_kop_line1);
         Setting::set('kartu_kop_line2', $request->kartu_kop_line2);
         Setting::set('kartu_kop_line3', $request->kartu_kop_line3);
+
+        if ($request->hasFile('kartu_logo_kiri')) {
+            $oldPath = Setting::get('kartu_logo_kiri_path');
+            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('kartu_logo_kiri')->store('kartu', 'public');
+            Setting::set('kartu_logo_kiri_path', $path);
+        }
+
+        if ($request->hasFile('kartu_logo_kanan')) {
+            $oldPath = Setting::get('kartu_logo_kanan_path');
+            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('kartu_logo_kanan')->store('kartu', 'public');
+            Setting::set('kartu_logo_kanan_path', $path);
+        }
 
         return back()->with('success', 'Pengaturan berhasil disimpan.');
     }

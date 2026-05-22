@@ -6,233 +6,59 @@
     <link rel="icon" href="data:,">
     <title>Kartu Peserta - {{ $kela->kode }} - {{ $jadwal->nama }}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 11px; }
+        .no-print { padding: 15px 20px; background: #f3f4f6; border-bottom: 1px solid #e5e7eb; }
+        .no-print button { padding: 8px 20px; background: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; margin-right: 10px; }
+        .no-print button:hover { background: #4338ca; }
+        .no-print a { padding: 8px 20px; background: #6b7280; color: white; border: none; border-radius: 5px; text-decoration: none; font-size: 14px; }
+        .no-print .info { display: block; margin-top: 10px; color: #6b7280; font-size: 13px; }
 
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-        }
-
-        .no-print {
-            padding: 15px 20px;
-            background: #f3f4f6;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .no-print button {
-            padding: 8px 20px;
-            background: #4f46e5;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-right: 10px;
-        }
-
-        .no-print button:hover {
-            background: #4338ca;
-        }
-
-        .no-print a {
-            padding: 8px 20px;
-            background: #6b7280;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .no-print .info {
-            display: block;
-            margin-top: 10px;
-            color: #6b7280;
-            font-size: 13px;
-        }
-
-        /* A4 portrait: 210mm x 297mm, padding 10mm = usable 190mm x 277mm */
-        /* Card: 90mm x 130mm portrait */
-        /* 2 cols: 90*2 + gap = 184mm < 190mm OK */
-        /* 2 rows: 130*2 + gap = 264mm < 277mm OK */
-        /* = 4 cards per page */
         .page {
-            width: 210mm;
-            height: 297mm;
-            padding: 10mm;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            align-content: flex-start;
-            justify-content: center;
-            gap: 4mm;
+            width: 210mm; height: 297mm; padding: 10mm; margin: 0 auto;
+            display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: center; gap: 4mm;
             page-break-after: always;
         }
+        .page:last-child { page-break-after: avoid; }
 
-        .page:last-child {
-            page-break-after: avoid;
-        }
-
-        /* Card: 90mm x 130mm portrait */
         .card {
-            width: 90mm;
-            height: 130mm;
-            border: 1px solid #333;
-            padding: 5mm;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            overflow: hidden;
+            width: 90mm; height: 130mm; border: 1px solid #333; padding: 5mm;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden;
         }
 
         .card-header {
-            text-align: center;
-            margin-bottom: 4mm;
-            padding-bottom: 3mm;
-            border-bottom: 1px solid #999;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2mm;
+            text-align: center; margin-bottom: 4mm; padding-bottom: 3mm; border-bottom: 1px solid #999;
+            width: 100%; display: flex; align-items: center; justify-content: center; gap: 2mm;
         }
-
-        .card-header-logo {
-            height: 12mm;
-            width: auto;
-            flex-shrink: 0;
-        }
-
-        .card-header-text {
-            text-align: center;
-            flex: 1;
-        }
-
-        .card-header-line1 {
-            font-size: 16px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .card-header-line2 {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .card-header-line3 {
-            font-size: 16px;
-        }
+        .card-header-logo { height: 12mm; width: auto; flex-shrink: 0; }
+        .card-header-text { text-align: center; flex: 1; }
+        .card-header-line1 { font-size: 14px; font-weight: bold; text-transform: uppercase; }
+        .card-header-line2 { font-size: 14px; font-weight: bold; }
+        .card-header-line3 { font-size: 14px; }
 
         .card-body {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            text-align: center;
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; text-align: center;
         }
-
-        .card-foto {
-            width: 28mm;
-            height: 38mm;
-            object-fit: cover;
-            border: 1px solid #ccc;
-            margin-bottom: 4mm;
-        }
-
-        .card-foto-placeholder {
-            width: 28mm;
-            height: 38mm;
-            border: 1px dashed #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 4mm;
-            background: #f9f9f9;
-        }
-
-        .card-nama {
-            font-size: 26px;
-            font-weight: bold;
-            margin-bottom: 2mm;
-            line-height: 1.3;
-            text-align: center;
-            word-wrap: break-word;
-            max-width: 100%;
-        }
-
-        .card-nim {
-            font-size: 16px;
-            font-family: 'Courier New', monospace;
-            margin-bottom: 2mm;
-        }
-
-        .card-kelas {
-            font-size: 16px;
-            margin-bottom: 2mm;
-            color: #333;
-        }
-
-        .card-jadwal-nama {
-            font-size: 16px;
-            margin-bottom: 1.5mm;
-            color: #333;
-        }
-
-        .card-gelombang {
-            font-size: 16px;
-            margin-bottom: 1.5mm;
-            color: #333;
-        }
-
-        .card-waktu {
-            font-size: 16px;
-            font-weight: bold;
-            color: #000;
-        }
+        .card-foto { width: 28mm; height: 38mm; object-fit: cover; border: 1px solid #ccc; margin-bottom: 4mm; }
+        .card-foto-placeholder { width: 28mm; height: 38mm; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; margin-bottom: 4mm; background: #f9f9f9; }
+        .card-nama { font-size: 26px; font-weight: bold; margin-bottom: 2mm; line-height: 1.3; text-align: center; word-wrap: break-word; max-width: 100%; }
+        .card-nim { font-size: 16px; font-family: 'Courier New', monospace; margin-bottom: 2mm; }
+        .card-kelas { font-size: 16px; margin-bottom: 2mm; color: #333; }
+        .card-jadwal-nama { font-size: 16px; margin-bottom: 1.5mm; color: #333; }
+        .card-gelombang { font-size: 16px; margin-bottom: 1.5mm; color: #333; }
+        .card-waktu { font-size: 16px; font-weight: bold; color: #000; }
 
         @media print {
-            .no-print {
-                display: none !important;
-            }
-
-            body {
-                margin: 0;
-                padding: 0;
-            }
-
-            .page {
-                margin: 0;
-                padding: 10mm;
-            }
-
-            .card {
-                border: 1px solid #000;
-            }
-
-            @page {
-                size: A4 portrait;
-                margin: 0;
-            }
+            .no-print { display: none !important; }
+            body { margin: 0; padding: 0; }
+            .page { margin: 0; padding: 10mm; }
+            .card { border: 1px solid #000; }
+            @page { size: A4 portrait; margin: 0; }
         }
-
         @media screen {
-            body {
-                background: #e5e7eb;
-                padding: 20px 0;
-            }
-
-            .page {
-                background: white;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                margin-bottom: 20px;
-            }
+            body { background: #e5e7eb; padding: 20px 0; }
+            .page { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.15); margin-bottom: 20px; }
         }
     </style>
 </head>
@@ -259,8 +85,8 @@
                 @foreach($pageItems as $mhs)
                     <div class="card">
                         <div class="card-header">
-                            @if($labelLogo)
-                                <img src="{{ asset('storage/' . $labelLogo) }}" class="card-header-logo" alt="Logo">
+                            @if($kartuLogoKiri)
+                                <img src="{{ asset('storage/' . $kartuLogoKiri) }}" class="card-header-logo" alt="Logo">
                             @endif
                             <div class="card-header-text">
                                 @if($kartuKopLine1)
@@ -275,8 +101,8 @@
                                     <div class="card-header-line3">{{ $kartuKopLine3 }}</div>
                                 @endif
                             </div>
-                            @if($labelLogo)
-                                <img src="{{ asset('storage/' . $labelLogo) }}" class="card-header-logo" alt="Logo">
+                            @if($kartuLogoKanan)
+                                <img src="{{ asset('storage/' . $kartuLogoKanan) }}" class="card-header-logo" alt="Logo">
                             @endif
                         </div>
 
@@ -305,7 +131,6 @@
                     </div>
                 @endforeach
 
-                {{-- Fill empty cards --}}
                 @for($i = $pageItems->count(); $i < 4; $i++)
                     <div class="card" style="border: 1px dashed #ccc;"></div>
                 @endfor
