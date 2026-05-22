@@ -65,7 +65,25 @@ class MahasiswaController extends Controller
             'nim' => 'required|string|max:20|unique:mahasiswa,nim,' . $mahasiswa->id,
             'nama' => 'required|string|max:100',
             'kelas_id' => 'required|exists:kelas,id',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+
+        // Handle foto upload
+        if ($request->hasFile('foto')) {
+            // Delete old photo
+            if ($mahasiswa->foto && \Storage::disk('public')->exists($mahasiswa->foto)) {
+                \Storage::disk('public')->delete($mahasiswa->foto);
+            }
+
+            $path = $request->file('foto')->storeAs(
+                'foto-mahasiswa',
+                $mahasiswa->nim . '.' . $request->file('foto')->getClientOriginalExtension(),
+                'public'
+            );
+            $data['foto'] = $path;
+        } else {
+            unset($data['foto']);
+        }
 
         $mahasiswa->update($data);
 
@@ -99,5 +117,113 @@ class MahasiswaController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Import gagal: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Show upload foto form
+     */
+    public function uploadFotoForm()
+    {
+        return view('admin.mahasiswa.upload-foto');
+    }
+
+    /**
+     * Process bulk photo upload (ZIP file with NIM as filename)
+     */
+    public function uploadFoto(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:zip|max:51200', // max 50MB
+        ]);
+
+        $zipFile = $request->file('file');
+        $zip = new \ZipArchive;
+
+        if ($zip->open($zipFile->getRealPath()) !== true) {
+            return back()->with('error', 'Gagal membuka file ZIP.');
+        }
+
+        $uploaded = 0;
+        $skipped = [];
+        $storagePath = storage_path('app/public/foto-mahasiswa');
+
+        if (!file_exists($storagePath)) {
+            mkdir($storagePath, 0755, true);
+        }
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $filename = $zip->getNameIndex($i);
+            
+            // Skip directories and hidden files
+            if (str_ends_with($filename, '/') || str_starts_with(basename($filename), '.')) {
+                continue;
+            }
+
+            // Get extension and NIM from filename
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                $skipped[] = "{$filename}: format tidak didukung (hanya jpg/png)";
+                continue;
+            }
+
+            $nim = pathinfo(basename($filename), PATHINFO_FILENAME);
+
+            // Find mahasiswa by NIM
+            $mahasiswa = Mahasiswa::where('nim', $nim)->first();
+            if (!$mahasiswa) {
+                $skipped[] = "{$filename}: NIM '{$nim}' tidak ditemukan";
+                continue;
+            }
+
+            // Delete old photo if exists
+            if ($mahasiswa->foto && file_exists(storage_path('app/public/' . $mahasiswa->foto))) {
+                unlink(storage_path('app/public/' . $mahasiswa->foto));
+            }
+
+            // Extract and save
+            $newFilename = $nim . '.' . $ext;
+            $content = $zip->getFromIndex($i);
+            file_put_contents($storagePath . '/' . $newFilename, $content);
+
+            $mahasiswa->update(['foto' => 'foto-mahasiswa/' . $newFilename]);
+            $uploaded++;
+        }
+
+        $zip->close();
+
+        $message = "Berhasil upload {$uploaded} foto.";
+        if (count($skipped) > 0) {
+            return redirect()->route('admin.mahasiswa.index')
+                ->with('success', $message)
+                ->with('import_errors', $skipped);
+        }
+
+        return redirect()->route('admin.mahasiswa.index')
+            ->with('success', $message);
+    }
+
+    /**
+     * Update foto for individual mahasiswa
+     */
+    public function updateFoto(Request $request, Mahasiswa $mahasiswa)
+    {
+        $request->validate([
+            'foto' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        // Delete old photo
+        if ($mahasiswa->foto && \Storage::disk('public')->exists($mahasiswa->foto)) {
+            \Storage::disk('public')->delete($mahasiswa->foto);
+        }
+
+        $path = $request->file('foto')->storeAs(
+            'foto-mahasiswa',
+            $mahasiswa->nim . '.' . $request->file('foto')->getClientOriginalExtension(),
+            'public'
+        );
+
+        $mahasiswa->update(['foto' => $path]);
+
+        return back()->with('success', 'Foto berhasil diupdate.');
     }
 }
