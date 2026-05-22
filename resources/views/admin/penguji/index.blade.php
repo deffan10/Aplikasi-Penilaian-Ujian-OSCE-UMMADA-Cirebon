@@ -105,9 +105,10 @@
             <p class="text-sm text-gray-500 mb-4">Pilih jadwal ujian untuk mencetak label penguji yang terdaftar:</p>
 
             @if($jadwalList->count() > 0)
-                <div class="space-y-2 max-h-64 overflow-y-auto">
+                <div class="space-y-2 max-h-48 overflow-y-auto">
                     @foreach($jadwalList as $jadwal)
-                        <a href="{{ route('admin.penguji.print-labels', ['jadwal_id' => $jadwal->id]) }}" 
+                        <a id="penguji-jadwal-link-{{ $jadwal->id }}" 
+                           href="{{ route('admin.penguji.print-labels', ['jadwal_id' => $jadwal->id]) }}" 
                            target="_blank"
                            class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-colors">
                             <div>
@@ -126,6 +127,25 @@
                 </div>
             @endif
 
+            {{-- Optional fields --}}
+            <div class="mt-4 pt-3 border-t">
+                <p class="text-xs text-gray-500 mb-2 font-medium">Tampilkan di label (opsional):</p>
+                <div class="space-y-1">
+                    <label class="flex items-center text-sm cursor-pointer">
+                        <input type="checkbox" id="lbl_chk_stasi" checked class="rounded border-gray-300 text-indigo-600 mr-2 lbl-chk-field">
+                        Stasi
+                    </label>
+                    <label class="flex items-center text-sm cursor-pointer">
+                        <input type="checkbox" id="lbl_chk_gelombang" checked class="rounded border-gray-300 text-indigo-600 mr-2 lbl-chk-field">
+                        Nama Gelombang
+                    </label>
+                    <label class="flex items-center text-sm cursor-pointer">
+                        <input type="checkbox" id="lbl_chk_waktu" checked class="rounded border-gray-300 text-indigo-600 mr-2 lbl-chk-field">
+                        Waktu
+                    </label>
+                </div>
+            </div>
+
             <div class="mt-4 flex justify-end">
                 <button onclick="document.getElementById('printLabelModal').classList.add('hidden')" 
                     class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
@@ -136,3 +156,21 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function updatePengujiPrintLinks() {
+    var showStasi = document.getElementById('lbl_chk_stasi').checked ? '1' : '0';
+    var showGelombang = document.getElementById('lbl_chk_gelombang').checked ? '1' : '0';
+    var showWaktu = document.getElementById('lbl_chk_waktu').checked ? '1' : '0';
+    @foreach($jadwalList as $jadwal)
+        document.getElementById('penguji-jadwal-link-{{ $jadwal->id }}').href = 
+            "{{ route('admin.penguji.print-labels') }}?jadwal_id={{ $jadwal->id }}&show_stasi=" + showStasi + "&show_gelombang=" + showGelombang + "&show_waktu=" + showWaktu;
+    @endforeach
+}
+
+document.querySelectorAll('.lbl-chk-field').forEach(function(cb) {
+    cb.addEventListener('change', updatePengujiPrintLinks);
+});
+</script>
+@endpush

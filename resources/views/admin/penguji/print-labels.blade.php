@@ -278,14 +278,20 @@
                                 <span class="label-value">: {{ $p->plain_password ?? '********' }}</span>
                             </div>
 
-                            @if(isset($pengujiAssignments[$p->id]) && $pengujiAssignments[$p->id]->count() > 0)
+                            @if(isset($pengujiAssignments[$p->id]) && $pengujiAssignments[$p->id]->count() > 0 && ($showStasi || $showGelombang || $showWaktu))
                                 <div class="label-assignment">
                                     <table class="assign-table">
                                         @foreach($pengujiAssignments[$p->id] as $assign)
                                             <tr>
-                                                <td class="col-stasi">{{ $assign->stasi_nama }}</td>
-                                                <td class="col-gelombang">{{ $assign->gelombang_nama }}</td>
-                                                <td class="col-waktu">{{ $assign->tanggal }} {{ $assign->waktu }}</td>
+                                                @if($showStasi)
+                                                    <td class="col-stasi">{{ $assign->stasi_nama }}</td>
+                                                @endif
+                                                @if($showGelombang)
+                                                    <td class="col-gelombang">{{ $assign->gelombang_nama }}</td>
+                                                @endif
+                                                @if($showWaktu)
+                                                    <td class="col-waktu">{{ $assign->tanggal }} {{ $assign->waktu }}</td>
+                                                @endif
                                             </tr>
                                         @endforeach
                                     </table>

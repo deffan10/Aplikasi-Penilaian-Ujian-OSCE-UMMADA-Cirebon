@@ -301,8 +301,14 @@ class PengujiController extends Controller
         $labelLine3 = \App\Models\Setting::get('label_header_line3', '');
         $labelLogo = \App\Models\Setting::get('label_logo_path');
 
+        // Optional field visibility
+        $showStasi = $request->get('show_stasi', '1') === '1';
+        $showGelombang = $request->get('show_gelombang', '1') === '1';
+        $showWaktu = $request->get('show_waktu', '1') === '1';
+
         return view('admin.penguji.print-labels', compact(
-            'penguji', 'pengujiAssignments', 'jadwal', 'labelLine1', 'labelLine2', 'labelLine3', 'labelLogo'
+            'penguji', 'pengujiAssignments', 'jadwal', 'labelLine1', 'labelLine2', 'labelLine3', 'labelLogo',
+            'showStasi', 'showGelombang', 'showWaktu'
         ));
     }
 }
